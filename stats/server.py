@@ -3,11 +3,8 @@ flask backend for personal site
 handles: Spotify (with auto token refresh), Last.fm, Letterboxd
 """
 
-import fcntl
-
 from flask import Flask, jsonify
 import os
-import tempfile
 import requests
 import base64
 import json
@@ -59,30 +56,21 @@ def load_spotify_tokens():
         return None
 
 def save_spotify_tokens(tokens):
-    """Save tokens safely with file locking"""
+    """Save tokens atomically using os.replace"""
     tmp_path = SPOTIFY_TOKENS_FILE + '.tmp'
     
+    # Write to temp file
     with open(tmp_path, 'w') as f:
-        fcntl.flock(f.fileno(), fcntl.LOCK_EX)  # Exclusive lock
         json.dump(tokens, f)
         f.flush()
         os.fsync(f.fileno())
-        fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # Release lock
     
-    # Verify tmp file is valid JSON
+    # Verify temp file is valid JSON before replacing
     with open(tmp_path, 'r') as f:
         json.loads(f.read())
     
-    # Lock main file during copy
-    with open(SPOTIFY_TOKENS_FILE, 'w') as dst:
-        fcntl.flock(dst.fileno(), fcntl.LOCK_EX)
-        with open(tmp_path, 'r') as src:
-            dst.write(src.read())
-        dst.flush()
-        os.fsync(dst.fileno())
-        fcntl.flock(dst.fileno(), fcntl.LOCK_UN)
-    
-    os.remove(tmp_path)
+    # Atomic rename - never truncates destination without replacing
+    os.replace(tmp_path, SPOTIFY_TOKENS_FILE)
     return True
 
 def refresh_spotify_token():
