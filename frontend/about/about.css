@@ -189,6 +189,10 @@ a, button, .gallery-card, .social-links a, .close-btn {
     opacity: 1;
 }
 
+.expanded-overlay.active ~ #mousetrailer {
+    background: white;
+}
+
 /* =============================================================================
    MOBILE - NATIVE VERTICAL SCROLL
    ============================================================================= */
