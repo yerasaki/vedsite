@@ -359,9 +359,9 @@
         // INITIALIZE
 
         document.addEventListener('DOMContentLoaded', () => {
-            setInterval(fetchTopArtists, 300000);    // 5 min
-            setInterval(fetchRecentFilms, 60000);    // 1 min (changes when you log)
-            setInterval(fetchTop4, 600000);          // 10 min
+            fetchTopArtists, 1000;    // 5 min
+            fetchRecentFilms, 1000;    // 1 min (changes when you log)
+            fetchTop4, 1000;          // 10 min
             startPolling();
         });
     </script>
