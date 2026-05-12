@@ -144,12 +144,12 @@
 
                 if (data.error) {
                     document.getElementById('track-name').textContent = 'Could not load';
-                    pollInterval = 120000; // Slow down on error
+                    pollInterval = 5000; // back off to 5s on error 
                     return;
                 }
 
-                // Adjust polling rate based on playback state
-                pollInterval = data.is_playing ? 60000 : 120000;
+                // Stay at 1s while page is active
+                pollInterval = 1000;
 
                 // Check if track changed
                 const trackChanged = currentTrack.name !== data.track_name;
@@ -176,7 +176,7 @@
 
             } catch (err) {
                 console.error('Error fetching now playing:', err);
-                pollInterval = 120000; // Slow down on error
+                pollInterval = 5000; // Back off to 5s on error
             }
         }
 
@@ -205,13 +205,13 @@
         // Visibility-aware polling with dynamic interval
         let nowPlayingInterval;
         let queueInterval;
-        let pollInterval = 60000; // 60s when playing, 120s when idle
+        let pollInterval = 1000; // 1s when page is active 
 
         function startPolling() {
             fetchNowPlaying();
             fetchQueue();
             scheduleNowPlaying();
-            queueInterval = setInterval(fetchQueue, 120000);
+            queueInterval = setInterval(fetchQueue, 1000);
         }
 
         function scheduleNowPlaying() {
@@ -359,9 +359,9 @@
         // INITIALIZE
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetchTopArtists();
-            fetchRecentFilms();
-            fetchTop4();
+            setInterval(fetchTopArtists, 300000);    // 5 min
+            setInterval(fetchRecentFilms, 60000);    // 1 min (changes when you log)
+            setInterval(fetchTop4, 600000);          // 10 min
             startPolling();
         });
     </script>
