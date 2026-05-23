@@ -87,7 +87,7 @@
 
                 <!-- Recently Watched -->
                 <section>
-                    <h2>recently watched</h2>
+                    <h2>recent films</h2>
                     <div class="films-row" id="films-grid">
                         <p class="loading">Loading films...</p>
                     </div>
@@ -102,6 +102,29 @@
                 </section>
             </div>
         </div>
+
+        <footer class="social-links">
+            <a href="https://letterboxd.com/yerasaki" target="_blank">
+                <img src="icons/letterboxd.svg" alt="Letterboxd">
+                <span>Letterboxd</span>
+            </a>
+            <a href="https://open.spotify.com/user/kxs25fkegar1wmx32cu73jcye?si=95c3604f2e74483f" target="_blank">
+                <img src="icons/spotify.svg" alt="Spotify">
+                <span>Spotify</span>
+            </a>
+            <a href="https://www.last.fm/user/yerasaki" target="_blank">
+                <img src="icons/lastfm.svg" alt="Last.fm">
+                <span>Last.fm</span>
+            </a>
+            <a href="https://www.serializd.com/user/yerasaki/profile" target="_blank">
+                <img src="icons/serializd.svg" alt="Serializd">
+                <span>Serializd</span>
+            </a>
+            <a href="https://www.strava.com/athletes/deshpande_ved0" target="_blank">
+                <img src="icons/strava.svg" alt="Strava">
+                <span>Strava</span>
+            </a>
+        </footer>
     </div>
 
     <div id="mousetrailer"></div>
@@ -247,12 +270,22 @@
                     return;
                 }
 
-                container.innerHTML = data.queue.slice(0, 5).map(track => `
+                const slots = Array.from({ length: 6 }, (_, i) => data.queue[i] || null);
+                container.innerHTML = slots.map((track, i) => track ? `
                     <div class="queue-item">
+                        <span class="queue-num">${i + 1}</span>
                         <img src="${track.album_image}" alt="Album">
                         <div class="queue-item-info">
                             <div class="queue-track">${track.track_name}</div>
                             <div class="queue-artist">${track.artist_name}</div>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="queue-item queue-item-empty">
+                        <span class="queue-num">${i + 1}</span>
+                        <div class="queue-item-info">
+                            <div class="queue-track">—</div>
+                            <div class="queue-artist">empty</div>
                         </div>
                     </div>
                 `).join('');
@@ -279,11 +312,11 @@
                 }
 
                 container.innerHTML = data.artists.map((artist, i) => `
-                    <div class="artist-card">
+                    <a href="${artist.url}" target="_blank" class="artist-card" style="text-decoration: none; color: inherit;">
                         ${artist.image ? `<img class="artist-img" src="${artist.image}" alt="${artist.name}">` : `<div class="rank">#${i + 1}</div>`}
                         <div class="name">${artist.name}</div>
                         <div class="plays">${artist.playcount} plays</div>
-                    </div>
+                    </a>
                 `).join('');
             } catch (err) {
                 console.error('Error fetching artists:', err);

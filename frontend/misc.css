@@ -10,6 +10,30 @@ body {
     cursor: none;
 }
 
+/* Scrollbar styled to match home button (white) */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #ffffff transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #ffffff;
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #a69b8f;
+}
+
 a, button, .film-card, .top4-card, .artist-card {
     cursor: none;
 }
@@ -28,7 +52,7 @@ a, button, .film-card, .top4-card, .artist-card {
 .page-container {
     position: relative;
     z-index: 10 !important;
-    padding: 20px 50px 20px;
+    padding: 20px 50px clamp(60px, 8vh, 90px);
     height: 100vh;
     box-sizing: border-box;
     overflow-y: auto;
@@ -97,9 +121,9 @@ a, button, .film-card, .top4-card, .artist-card {
 }
 
 .right-column .films-row {
-    flex: 1;
     min-height: 0;
     overflow: visible;
+    gap: 40px;
 }
 
 .right-column .film-card {
@@ -110,9 +134,7 @@ a, button, .film-card, .top4-card, .artist-card {
 }
 
 .right-column .film-card img {
-    flex: 1;
-    min-height: 0;
-    object-fit: contain;
+    object-fit: cover;
 }
 
 .column section {
@@ -262,9 +284,10 @@ a, button, .film-card, .top4-card, .artist-card {
    ============================================================================= */
 
 .queue-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: auto;
+    gap: 8px 10px;
 }
 
 .left-column section:last-child {
@@ -273,23 +296,24 @@ a, button, .film-card, .top4-card, .artist-card {
 }
 
 .left-column section:last-child .queue-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
 }
 
 .queue-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: clamp(6px, 0.8vw, 8px);
     background: rgba(255, 255, 255, 0.05);
-    padding: 8px 10px;
+    padding: clamp(4px, 0.6vw, 6px) clamp(6px, 0.8vw, 8px);
     border-radius: 6px;
+    min-width: 0;
 }
 
 .queue-item img {
-    width: 40px;
-    height: 40px;
+    width: clamp(28px, 3vw, 32px);
+    height: clamp(28px, 3vw, 32px);
     border-radius: 4px;
 }
 
@@ -297,16 +321,83 @@ a, button, .film-card, .top4-card, .artist-card {
     min-width: 0;
 }
 
+.queue-num {
+    flex-shrink: 0;
+    font-size: clamp(10px, 1.3vw, 12px);
+    font-weight: bold;
+    opacity: 0.5;
+    width: clamp(12px, 1.6vw, 16px);
+    text-align: center;
+}
+
 .queue-track {
-    font-size: 15px;
+    font-size: clamp(11px, 1.4vw, 13px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .queue-artist {
-    font-size: 13px;
+    font-size: clamp(9px, 1.2vw, 11px);
     opacity: 0.7;
+}
+
+/* =============================================================================
+   SOCIAL LINKS FOOTER (mirrors about.html pattern)
+   ============================================================================= */
+
+.social-links {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 30px;
+    z-index: 100;
+    max-width: calc(100vw - 16px);
+}
+
+.social-links a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: transform 200ms ease;
+}
+
+.social-links a:hover {
+    transform: translateY(-2px);
+}
+
+.social-links img {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+}
+
+.social-links span {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+}
+
+/* Mobile: drop the floating pill — flow inline at the bottom of the page so
+   it only appears once the user scrolls to the end (matches about.html). */
+@media (hover: none), (max-width: 768px) {
+    .social-links {
+        position: static;
+        transform: none;
+        left: auto;
+        bottom: auto;
+        padding: 12px 20px;
+        flex-wrap: wrap;
+        margin-top: auto;
+        gap: 16px;
+    }
 }
 
 /* =============================================================================
@@ -552,8 +643,10 @@ section:has(#top4-grid) {
         min-width: 0;
     }
 
-    .queue-list {
+    .queue-list,
+    .left-column section:last-child .queue-list {
             width: 100%;
+            grid-template-columns: 1fr 1fr;
         }
 
     .queue-item {
@@ -593,6 +686,33 @@ section:has(#top4-grid) {
     .films-row {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    /* Right-column sections must size to their content on mobile, not share
+       a forced 600px min-height — otherwise the top4 posters spill over the
+       recent-films loading state. */
+    .right-column section,
+    .right-column .films-row {
+        flex: 0 0 auto;
+    }
+
+    .two-column-layout {
+        min-height: 0;
+    }
+
+    /* The fixed-bar bottom padding is unneeded once the bar flows inline. */
+    .page-container {
+        padding-bottom: 20px;
+    }
+
+    /* Bump queue text on mobile — clamp(vw) values collapse too small. */
+    .queue-item img {
+        width: 36px;
+        height: 36px;
+    }
+    .queue-track  { font-size: 14px; }
+    .queue-artist { font-size: 12px; }
+    .queue-num    { font-size: 13px; width: 18px; }
+
 
     .film-card {
         min-width: none;

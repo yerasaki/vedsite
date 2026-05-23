@@ -190,7 +190,7 @@ def spotify_queue():
         data = response.json()
         
         queue = []
-        for track in data.get('queue', [])[:10]:  # Limit to 10
+        for track in data.get('queue', [])[:6]:  # Limit to 6
             queue.append({
                 "track_name": track['name'],
                 "artist_name": track['artists'][0]['name'],
