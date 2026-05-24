@@ -1,0 +1,13 @@
+services:
+  vedsite-api:
+    build: .
+    container_name: vedsite-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - /home/ved/vedsite_secrets:/app/secrets
+    env_file:
+      - /home/ved/vedsite_secrets/.env
+    environment:
+      - SPOTIFY_TOKENS_FILE=/app/secrets/spotify_tokens.json
