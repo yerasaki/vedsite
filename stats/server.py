@@ -37,6 +37,10 @@ LASTFM_USER = os.environ.get("LASTFM_USER", "yerasaki")
 
 LETTERBOXD_USER = os.environ.get("LETTERBOXD_USER", "yerasaki")
 
+STRAVA_CLIENT_ID = os.environ["STRAVA_CLIENT_ID"]
+STRAVA_CLIENT_SECRET = os.environ["STRAVA_CLIENT_SECRET"]
+STRAVA_TOKENS_FILE = os.environ.get("STRAVA_TOKENS_FILE", "strava_tokens.json")
+
 # SPOTIFY - Token Management
 
 def load_spotify_tokens():
@@ -132,6 +136,105 @@ def spotify_request(endpoint):
     )
     return response
 
+# STRAVA - Token Management
+
+def load_strava_tokens():
+    """Load tokens from file"""
+    try:
+        with open(STRAVA_TOKENS_FILE, 'r') as f:
+            content = f.read()
+            if not content.strip():
+                print("ERROR: Strava tokens file is empty")
+                return None
+            return json.loads(content)
+    except FileNotFoundError:
+        print("ERROR: Strava tokens file not found")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Strava tokens file corrupted: {e}")
+        return None
+
+def save_strava_tokens(tokens):
+    """Save tokens atomically using os.replace"""
+    tmp_path = STRAVA_TOKENS_FILE + '.tmp'
+
+    # Write to temp file
+    with open(tmp_path, 'w') as f:
+        json.dump(tokens, f)
+        f.flush()
+        os.fsync(f.fileno())
+
+    # Verify temp file is valid JSON before replacing
+    with open(tmp_path, 'r') as f:
+        json.loads(f.read())
+
+    # Atomic rename - never truncates destination without replacing
+    os.replace(tmp_path, STRAVA_TOKENS_FILE)
+    return True
+
+def refresh_strava_token():
+    """Get new access token using refresh token. Strava rotates refresh tokens,
+    so we persist whatever comes back."""
+    tokens = load_strava_tokens()
+    if not tokens:
+        return None
+
+    if 'refresh_token' not in tokens:
+        print("ERROR: No refresh_token in Strava tokens file")
+        return None
+
+    response = requests.post(
+        "https://www.strava.com/api/v3/oauth/token",
+        data={
+            "client_id": STRAVA_CLIENT_ID,
+            "client_secret": STRAVA_CLIENT_SECRET,
+            "grant_type": "refresh_token",
+            "refresh_token": tokens['refresh_token']
+        }
+    )
+
+    new_tokens = response.json()
+
+    # Check if refresh succeeded
+    if 'access_token' not in new_tokens:
+        print(f"ERROR: Strava refresh failed: {new_tokens}")
+        return None
+
+    # Strava returns a fresh refresh_token each time — persist it.
+    # expires_at is already an absolute epoch timestamp from Strava (unlike Spotify's
+    # expires_in delta), but we subtract 300s for the same early-refresh buffer.
+    tokens['access_token'] = new_tokens['access_token']
+    tokens['refresh_token'] = new_tokens['refresh_token']
+    tokens['expires_at'] = new_tokens['expires_at'] - 300
+    save_strava_tokens(tokens)
+
+    return tokens['access_token']
+
+def get_strava_token():
+    """Get valid token, refreshing if expired"""
+    tokens = load_strava_tokens()
+    if not tokens:
+        return None
+
+    if time.time() >= tokens.get('expires_at', 0):
+        print("Strava token expired, refreshing...")
+        return refresh_strava_token()
+
+    return tokens.get('access_token')
+
+def strava_request(endpoint, params=None):
+    """Make authenticated Strava API request"""
+    token = get_strava_token()
+    if not token:
+        return None
+
+    response = requests.get(
+        f"https://www.strava.com/api/v3{endpoint}",
+        headers={"Authorization": f"Bearer {token}"},
+        params=params or {}
+    )
+    return response
+
 # SPOTIFY ENDPOINTS
 
 @app.route('/api/spotify/now-playing')
@@ -200,6 +303,49 @@ def spotify_queue():
         return jsonify({"queue": queue})
     
     return jsonify({"queue": []})
+
+# STRAVA ENDPOINTS
+
+@app.route('/api/strava/recent')
+def strava_recent():
+    """Get 3 most recent activities with time, location, calories"""
+    response = strava_request("/athlete/activities", params={"per_page": 3, "page": 1})
+
+    if response is None:
+        return jsonify({"error": "Strava authentication failed"}), 503
+
+    if response.status_code != 200:
+        return jsonify({"error": f"Strava API error: {response.status_code}"}), 500
+
+    activities = response.json()
+    results = []
+
+    for a in activities:
+        # Calories require a per-activity detail call (not in the list endpoint)
+        detail_resp = strava_request(f"/activities/{a['id']}")
+        calories = None
+        if detail_resp is not None and detail_resp.status_code == 200:
+            calories = detail_resp.json().get('calories')
+
+        # Build location string; fall back gracefully
+        city = a.get('location_city')
+        state = a.get('location_state')
+        country = a.get('location_country')
+        location = ", ".join([p for p in [city, state, country] if p]) or None
+
+        results.append({
+            "name": a['name'],
+            "type": a['type'],
+            "start_date_local": a['start_date_local'],
+            "moving_time": a['moving_time'],      # seconds
+            "elapsed_time": a['elapsed_time'],    # seconds
+            "distance": a['distance'],            # meters
+            "calories": calories,                 # kcal, may be null
+            "location": location,                 # may be null
+            "activity_url": f"https://www.strava.com/activities/{a['id']}",
+        })
+
+    return jsonify(results)
 
 # LAST.FM ENDPOINTS
 @app.route('/api/lastfm/top-artists')
