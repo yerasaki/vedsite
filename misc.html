@@ -46,31 +46,40 @@
                     </div>
                 </section>
 
-                <!-- Now Playing -->
-                <section>
-                    <h2>now playing</h2>
-                    <div class="now-playing" id="now-playing">
-                        <img class="album-art" id="album-art" src="" alt="Album art">
-                        <div class="track-info">
-                            <div class="track-name" id="track-name">Loading...</div>
-                            <div class="artist-name" id="artist-name"></div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="progress-bar"></div>
+                <!-- Now Playing + Queue side-by-side -->
+                <div class="np-queue-row">
+                    <section class="np-section">
+                        <h2>now playing</h2>
+                        <div class="now-playing" id="now-playing">
+                            <img class="album-art" id="album-art" src="" alt="Album art">
+                            <div class="track-info">
+                                <div class="track-name" id="track-name">Loading...</div>
+                                <div class="artist-name" id="artist-name"></div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" id="progress-bar"></div>
+                                </div>
+                                <div class="progress-time">
+                                    <span id="progress-current">0:00</span>
+                                    <span id="progress-duration">0:00</span>
+                                </div>
+                                <div class="play-status" id="play-status"></div>
                             </div>
-                            <div class="progress-time">
-                                <span id="progress-current">0:00</span>
-                                <span id="progress-duration">0:00</span>
-                            </div>
-                            <div class="play-status" id="play-status"></div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                <!-- Queue -->
+                    <section class="queue-section">
+                        <h2>current queue</h2>
+                        <div class="queue-list" id="queue-list">
+                            <p class="loading">Loading queue...</p>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Strava -->
                 <section>
-                    <h2>current queue</h2>
-                    <div class="queue-list" id="queue-list">
-                        <p class="loading">Loading queue...</p>
+                    <h2>strava</h2>
+                    <div class="strava-list" id="strava-list">
+                        <p class="loading">Loading activities...</p>
                     </div>
                 </section>
             </div>
@@ -90,14 +99,6 @@
                     <h2>recent films</h2>
                     <div class="films-row" id="films-grid">
                         <p class="loading">Loading films...</p>
-                    </div>
-                </section>
-
-                <!-- Strava Placeholder -->
-                <section>
-                    <h2>strava</h2>
-                    <div class="strava-placeholder">
-                        <h3>coming soon: exercise stats including calories and time</h3>
                     </div>
                 </section>
             </div>
@@ -270,7 +271,7 @@
                     return;
                 }
 
-                const slots = Array.from({ length: 6 }, (_, i) => data.queue[i] || null);
+                const slots = Array.from({ length: 4 }, (_, i) => data.queue[i] || null);
                 container.innerHTML = slots.map((track, i) => track ? `
                     <div class="queue-item">
                         <span class="queue-num">${i + 1}</span>
@@ -389,12 +390,69 @@
         }
 
 
+        // =============================================================================
+        // STRAVA (recent activities)
+        // =============================================================================
+
+        function formatDuration(seconds) {
+            if (!seconds && seconds !== 0) return '—';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            return h > 0 ? `${h}h ${m}m` : `${m}m`;
+        }
+
+        function formatStartDateTime(startLocal) {
+            // start_date_local is the activity's wall-clock time in its own TZ,
+            // even though the string carries a trailing 'Z'. Strip the Z so JS
+            // doesn't reinterpret it as UTC.
+            if (!startLocal) return '';
+            const clean = startLocal.replace(/Z$/, '');
+            const d = new Date(clean);
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const datePart = `${months[d.getMonth()]} ${d.getDate()}`;
+            let hours = d.getHours();
+            const minutes = d.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            return `${datePart} · ${hours}:${minutes} ${ampm}`;
+        }
+
+        async function fetchStrava() {
+            try {
+                const res = await fetch(`${API_BASE}/strava/recent`);
+                const data = await res.json();
+
+                const container = document.getElementById('strava-list');
+
+                if (data.error || !Array.isArray(data) || data.length === 0) {
+                    container.innerHTML = '<p style="opacity: 0.6;">No recent activities</p>';
+                    return;
+                }
+
+                container.innerHTML = data.map(act => `
+                    <a href="${act.activity_url}" target="_blank" class="strava-card" style="text-decoration: none; color: inherit;">
+                        <div class="strava-title">${act.name}</div>
+                        <div class="strava-meta">
+                            <span>${formatStartDateTime(act.start_date_local)}</span>
+                            <span>${formatDuration(act.moving_time)}</span>
+                            <span>${act.calories != null ? Math.round(act.calories) + ' cal' : '—'}</span>
+                            ${act.location ? `<span>${act.location}</span>` : ''}
+                        </div>
+                    </a>
+                `).join('');
+            } catch (err) {
+                console.error('Error fetching strava:', err);
+                document.getElementById('strava-list').innerHTML = '<p style="opacity: 0.6;">Strava unavailable</p>';
+            }
+        }
+
         // INITIALIZE
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchTopArtists();    // 5 min
             fetchRecentFilms();    // 1 min (changes when you log)
             fetchTop4();          // 10 min
+            fetchStrava();        // recent activities
             startPolling();
         });
     </script>

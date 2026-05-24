@@ -293,7 +293,7 @@ def spotify_queue():
         data = response.json()
         
         queue = []
-        for track in data.get('queue', [])[:6]:  # Limit to 6
+        for track in data.get('queue', [])[:4]:  # Limit to 4
             queue.append({
                 "track_name": track['name'],
                 "artist_name": track['artists'][0]['name'],
@@ -309,7 +309,7 @@ def spotify_queue():
 @app.route('/api/strava/recent')
 def strava_recent():
     """Get 3 most recent activities with time, location, calories"""
-    response = strava_request("/athlete/activities", params={"per_page": 3, "page": 1})
+    response = strava_request("/athlete/activities", params={"per_page": 4, "page": 1})
 
     if response is None:
         return jsonify({"error": "Strava authentication failed"}), 503
@@ -337,6 +337,7 @@ def strava_recent():
             "name": a['name'],
             "type": a['type'],
             "start_date_local": a['start_date_local'],
+            "timezone": a.get('timezone'),        # e.g. "(GMT-05:00) America/New_York"
             "moving_time": a['moving_time'],      # seconds
             "elapsed_time": a['elapsed_time'],    # seconds
             "distance": a['distance'],            # meters
