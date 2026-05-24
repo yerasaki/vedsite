@@ -49,16 +49,16 @@
                 <!-- Now Playing + Queue side-by-side -->
                 <div class="np-queue-row">
                     <section class="np-section">
-                        <h2>now playing</h2>
+                        <h2 id="np-header">now playing</h2>
                         <div class="now-playing" id="now-playing">
                             <img class="album-art" id="album-art" src="" alt="Album art">
                             <div class="track-info">
                                 <div class="track-name" id="track-name">Loading...</div>
                                 <div class="artist-name" id="artist-name"></div>
-                                <div class="progress-container">
+                                <div class="progress-container" id="progress-container">
                                     <div class="progress-bar" id="progress-bar"></div>
                                 </div>
-                                <div class="progress-time">
+                                <div class="progress-time" id="progress-time">
                                     <span id="progress-current">0:00</span>
                                     <span id="progress-duration">0:00</span>
                                 </div>
@@ -68,16 +68,16 @@
                     </section>
 
                     <section class="queue-section">
-                        <h2>current queue</h2>
+                        <h2 id="queue-header">current queue</h2>
                         <div class="queue-list" id="queue-list">
                             <p class="loading">Loading queue...</p>
                         </div>
                     </section>
                 </div>
 
-                <!-- Strava -->
+                <!-- Activities -->
                 <section>
-                    <h2>strava</h2>
+                    <h2>activities</h2>
                     <div class="strava-list" id="strava-list">
                         <p class="loading">Loading activities...</p>
                     </div>
@@ -161,6 +161,30 @@
             lastUpdate: Date.now()
         };
 
+        // null until fetchNowPlaying determines mode. Keeps fetchQueue from racing
+        // the first paint and writing stale empty-state text into the grid.
+        let displayMode = null;
+
+        function setMode(mode) {
+            if (displayMode === mode) return;
+            displayMode = mode;
+            const np = document.getElementById('np-header');
+            const qh = document.getElementById('queue-header');
+            const playStatus = document.getElementById('play-status');
+
+            // Progress bar stays visible in both modes so the card keeps the same
+            // vertical height — and so a returning visitor sees the frozen progress.
+            if (mode === 'paused') {
+                np.textContent = 'last played';
+                qh.textContent = 'recently played';
+                playStatus.textContent = '⏸︎ Paused';
+            } else {
+                np.textContent = 'now playing';
+                qh.textContent = 'current queue';
+                playStatus.textContent = '⏯︎ Playing';
+            }
+        }
+
         async function fetchNowPlaying() {
             try {
                 const res = await fetch(`${API_BASE}/spotify/now-playing`);
@@ -168,17 +192,19 @@
 
                 if (data.error) {
                     document.getElementById('track-name').textContent = 'Could not load';
-                    pollInterval = 5000; // back off to 5s on error 
+                    pollInterval = 5000; // back off to 5s on error
                     return;
                 }
 
                 // Stay at 1s while page is active
                 pollInterval = 1000;
 
-                // Check if track changed
-                const trackChanged = currentTrack.name !== data.track_name;
+                setMode(data.is_playing ? 'playing' : 'paused');
 
-                // Update state
+                // Card always reflects the track currently in the player —
+                // when playing, that's the live track; when paused, that's the
+                // track you stopped on (not the one before it).
+                const trackChanged = currentTrack.name !== data.track_name;
                 currentTrack = {
                     name: data.track_name,
                     duration: data.duration_ms,
@@ -186,21 +212,68 @@
                     isPlaying: data.is_playing,
                     lastUpdate: Date.now()
                 };
-
-                // Update UI elements (only update static elements if track changed)
                 if (trackChanged) {
                     document.getElementById('album-art').src = data.album_image;
                     document.getElementById('track-name').textContent = data.track_name;
                     document.getElementById('artist-name').textContent = data.artist_name;
                     document.getElementById('progress-duration').textContent = formatTime(data.duration_ms);
                 }
-
-                document.getElementById('play-status').textContent = data.is_playing ? '⏯︎ Playing' : '⏸︎ Paused';
                 updateProgressUI();
+
+                // In paused mode, the queue slot becomes the 4 songs played *before*
+                // the paused track. Pass the paused track in so we can dedupe against it.
+                if (!data.is_playing) {
+                    await renderRecentlyPlayed(data.track_name, data.artist_name);
+                    return;
+                }
 
             } catch (err) {
                 console.error('Error fetching now playing:', err);
                 pollInterval = 5000; // Back off to 5s on error
+            }
+        }
+
+        async function renderRecentlyPlayed(skipName, skipArtist) {
+            try {
+                const res = await fetch(`${API_BASE}/spotify/recently-played`);
+                const data = await res.json();
+                const tracks = data.tracks || [];
+                if (tracks.length === 0) return;
+
+                // Dedupe by name+artist preserving order, and skip the currently-
+                // paused track so the card and queue never duplicate.
+                const seen = new Set();
+                if (skipName) seen.add(`${skipName}__${skipArtist}`);
+                const unique = [];
+                for (const t of tracks) {
+                    const key = `${t.track_name}__${t.artist_name}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        unique.push(t);
+                    }
+                }
+
+                // First 4 unique tracks are the songs played *before* the paused one.
+                const slots = Array.from({ length: 4 }, (_, i) => unique[i] || null);
+                const container = document.getElementById('queue-list');
+                container.innerHTML = slots.map(track => track ? `
+                    <div class="queue-item">
+                        <img src="${track.album_image}" alt="Album">
+                        <div class="queue-item-info">
+                            <div class="queue-track">${track.track_name}</div>
+                            <div class="queue-artist">${track.artist_name}</div>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="queue-item queue-item-empty">
+                        <div class="queue-item-info">
+                            <div class="queue-track">—</div>
+                            <div class="queue-artist">empty</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error fetching recently played:', err);
             }
         }
 
@@ -260,6 +333,9 @@
         // =============================================================================
 
         async function fetchQueue() {
+            // Only render the live queue once we know we're in playing mode.
+            // While paused (or before mode is determined), fetchNowPlaying owns the grid.
+            if (displayMode !== 'playing') return;
             try {
                 const res = await fetch(`${API_BASE}/spotify/queue`);
                 const data = await res.json();
@@ -401,20 +477,157 @@
             return h > 0 ? `${h}h ${m}m` : `${m}m`;
         }
 
-        function formatStartDateTime(startLocal) {
-            // start_date_local is the activity's wall-clock time in its own TZ,
-            // even though the string carries a trailing 'Z'. Strip the Z so JS
-            // doesn't reinterpret it as UTC.
-            if (!startLocal) return '';
-            const clean = startLocal.replace(/Z$/, '');
-            const d = new Date(clean);
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            const datePart = `${months[d.getMonth()]} ${d.getDate()}`;
-            let hours = d.getHours();
-            const minutes = d.getMinutes().toString().padStart(2, '0');
+        function to12Hour(date) {
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12 || 12;
-            return `${datePart} · ${hours}:${minutes} ${ampm}`;
+            return `${hours}:${minutes} ${ampm}`;
+        }
+
+        function formatActivityDate(startLocal) {
+            // start_date_local is the activity's wall-clock time in its own TZ,
+            // even though the string carries a trailing 'Z'. Strip it.
+            if (!startLocal) return '';
+            const d = new Date(startLocal.replace(/Z$/, ''));
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return `${months[d.getMonth()]} ${d.getDate()}`;
+        }
+
+        function formatActivityTimeRange(startLocal, elapsedSeconds) {
+            if (!startLocal) return '';
+            const start = new Date(startLocal.replace(/Z$/, ''));
+            const end = new Date(start.getTime() + (elapsedSeconds || 0) * 1000);
+            return `${to12Hour(start)} - ${to12Hour(end)}`;
+        }
+
+        // Calligraphic ink composition per card: a burst of rays anchored at one
+        // corner, a flowing variable-width brush stroke arcing across, a rust
+        // spiral curl, and fine specks. Each card's anchor corner rotates around
+        // the 2x2 grid so the four bursts point inward.
+        function stravaInk(act, index) {
+            const ORANGE = '#fc4c02';
+            const RUST   = 'rgba(255, 255, 255, 0.55)';
+
+            const seedSrc = (act.name || '') + (act.start_date_local || '') + index;
+            const seed = seedSrc.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+            const rand = (i) => {
+                const x = Math.sin(seed + i * 17.31) * 10000;
+                return x - Math.floor(x);
+            };
+
+            // Anchor corner + angular sector the burst fans into.
+            const corners = [
+                { x: 16, y: 80, a0: -Math.PI / 2 - 0.15, a1: 0 + 0.15 },        // BL → up-right
+                { x: 84, y: 80, a0:  Math.PI - 0.15,     a1: 3 * Math.PI / 2 + 0.15 }, // BR → up-left
+                { x: 16, y: 20, a0:  0 - 0.15,           a1: Math.PI / 2 + 0.15 },    // TL → down-right
+                { x: 84, y: 20, a0:  Math.PI / 2 - 0.15, a1: Math.PI + 0.15 },        // TR → down-left
+            ];
+            const anchor = corners[index % 4];
+
+            // ---- Sun-burst rays ----
+            const rayCount = 10 + Math.floor(rand(1) * 4);
+            const rays = [];
+            for (let i = 0; i < rayCount; i++) {
+                const t = i / (rayCount - 1);
+                const ang = anchor.a0 + t * (anchor.a1 - anchor.a0) + (rand(i + 2) - 0.5) * 0.08;
+                const len = 12 + rand(i + 30) * 26;
+                const gap = 2 + rand(i + 60) * 2;
+                const x1 = anchor.x + Math.cos(ang) * gap;
+                const y1 = anchor.y + Math.sin(ang) * gap;
+                const x2 = anchor.x + Math.cos(ang) * (gap + len);
+                const y2 = anchor.y + Math.sin(ang) * (gap + len);
+                const sw = 0.35 + rand(i + 90) * 0.9;
+                const op = 0.55 + rand(i + 120) * 0.35;
+                rays.push(`<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${ORANGE}" stroke-width="${sw.toFixed(2)}" stroke-linecap="round" opacity="${op.toFixed(2)}"/>`);
+            }
+
+            // ---- Main flowing brush stroke (filled, variable-width) ----
+            const launchAng = anchor.a0 + (anchor.a1 - anchor.a0) * (0.35 + rand(200) * 0.3);
+            const sx = anchor.x + Math.cos(launchAng) * 10;
+            const sy = anchor.y + Math.sin(launchAng) * 10;
+            const ex = anchor.x < 50 ? 65 + rand(201) * 28 : 7 + rand(201) * 28;
+            const ey = anchor.y < 50 ? 65 + rand(202) * 28 : 7 + rand(202) * 28;
+            const dx = ex - sx, dy = ey - sy;
+            const segLen = Math.hypot(dx, dy) || 1;
+            const px = -dy / segLen, py = dx / segLen;
+            const bow1 = (12 + rand(203) * 14) * (rand(204) > 0.5 ? 1 : -1);
+            const bow2 = (12 + rand(205) * 14) * (rand(206) > 0.5 ? -1 : 1);
+            const c1x = sx + dx * 0.30 + px * bow1;
+            const c1y = sy + dy * 0.30 + py * bow1;
+            const c2x = sx + dx * 0.70 + px * bow2;
+            const c2y = sy + dy * 0.70 + py * bow2;
+
+            const N = 48;
+            const samples = [];
+            for (let i = 0; i <= N; i++) {
+                const t = i / N;
+                const mt = 1 - t;
+                const x = mt*mt*mt*sx + 3*mt*mt*t*c1x + 3*mt*t*t*c2x + t*t*t*ex;
+                const y = mt*mt*mt*sy + 3*mt*mt*t*c1y + 3*mt*t*t*c2y + t*t*t*ey;
+                samples.push({ x, y });
+            }
+            const peak = 0.32 + rand(220) * 0.18;
+            const maxW = 2.2 + rand(221) * 0.8;
+            const widthAt = (t) => {
+                const d = t < peak ? (peak - t) / peak : (t - peak) / (1 - peak);
+                return Math.max(0, maxW * (1 - d * d));
+            };
+            const left = [], right = [];
+            for (let i = 0; i < samples.length; i++) {
+                const t = i / (samples.length - 1);
+                const w = widthAt(t);
+                const prev = samples[Math.max(0, i - 1)];
+                const next = samples[Math.min(samples.length - 1, i + 1)];
+                const tx = next.x - prev.x;
+                const ty = next.y - prev.y;
+                const tl = Math.hypot(tx, ty) || 1;
+                const nx = -ty / tl, ny = tx / tl;
+                left.push(`${(samples[i].x + nx * w).toFixed(2)},${(samples[i].y + ny * w).toFixed(2)}`);
+                right.push(`${(samples[i].x - nx * w).toFixed(2)},${(samples[i].y - ny * w).toFixed(2)}`);
+            }
+            const brushD = `M${left.join(' L')} L${right.reverse().join(' L')} Z`;
+            const brush = `<path d="${brushD}" fill="${ORANGE}" opacity="0.92"/>`;
+
+            // ---- Rust spiral curl ~2/3 along the flow ----
+            const curlT = 0.55 + rand(300) * 0.25;
+            const curlIdx = Math.floor(curlT * samples.length);
+            const cx = samples[curlIdx].x;
+            const cy = samples[curlIdx].y;
+            const curlDir = rand(301) > 0.5 ? 1 : -1;
+            let spiralD = '';
+            const turns = 1.4 + rand(302) * 0.5;
+            const spiralSteps = 32;
+            const spiralR = 3.8 + rand(303) * 1.6;
+            for (let i = 0; i <= spiralSteps; i++) {
+                const t = i / spiralSteps;
+                const a = t * turns * Math.PI * 2 * curlDir + rand(304) * Math.PI * 2;
+                const r = t * spiralR;
+                const x = cx + Math.cos(a) * r;
+                const y = cy + Math.sin(a) * r;
+                spiralD += (i === 0 ? 'M' : 'L') + x.toFixed(2) + ',' + y.toFixed(2);
+            }
+            const spiral = `<path d="${spiralD}" fill="none" stroke="${RUST}" stroke-width="0.85" stroke-linecap="round" opacity="0.78"/>`;
+
+            // ---- Fine specks scattered along the flow ----
+            const dotCount = 4 + Math.floor(rand(400) * 3);
+            const dots = [];
+            for (let i = 0; i < dotCount; i++) {
+                const t = 0.12 + i * (0.7 / dotCount) + rand(400 + i) * 0.06;
+                const s = samples[Math.min(samples.length - 1, Math.floor(t * samples.length))];
+                const ox = (rand(450 + i) - 0.5) * 5;
+                const oy = (rand(470 + i) - 0.5) * 5;
+                const r = 0.4 + rand(490 + i) * 0.7;
+                const op = 0.45 + rand(510 + i) * 0.3;
+                dots.push(`<circle cx="${(s.x + ox).toFixed(1)}" cy="${(s.y + oy).toFixed(1)}" r="${r.toFixed(2)}" fill="${ORANGE}" opacity="${op.toFixed(2)}"/>`);
+            }
+
+            return `<svg class="strava-ink" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                ${rays.join('')}
+                ${brush}
+                ${spiral}
+                ${dots.join('')}
+            </svg>`;
         }
 
         async function fetchStrava() {
@@ -429,17 +642,22 @@
                     return;
                 }
 
-                container.innerHTML = data.map(act => `
-                    <a href="${act.activity_url}" target="_blank" class="strava-card" style="text-decoration: none; color: inherit;">
+                container.innerHTML = data.map((act, i) => {
+                    const mins = act.moving_time ? Math.round(act.moving_time / 60) : null;
+                    const cal = act.calories != null ? Math.round(act.calories) : null;
+                    return `
+                    <a href="${act.activity_url}" target="_blank" class="strava-card">
+                        ${stravaInk(act, i)}
                         <div class="strava-title">${act.name}</div>
-                        <div class="strava-meta">
-                            <span>${formatStartDateTime(act.start_date_local)}</span>
-                            <span>${formatDuration(act.moving_time)}</span>
-                            <span>${act.calories != null ? Math.round(act.calories) + ' cal' : '—'}</span>
-                            ${act.location ? `<span>${act.location}</span>` : ''}
+                        <div class="strava-marginal">
+                            ${formatActivityDate(act.start_date_local)} &nbsp;·&nbsp; ${formatActivityTimeRange(act.start_date_local, act.elapsed_time)}
                         </div>
-                    </a>
-                `).join('');
+                        <div class="strava-numerals">
+                            <span class="num">${mins != null ? mins : '—'}<small>min</small></span>
+                            <span class="num">${cal != null ? cal : '—'}<small>cal</small></span>
+                        </div>
+                    </a>`;
+                }).join('');
             } catch (err) {
                 console.error('Error fetching strava:', err);
                 document.getElementById('strava-list').innerHTML = '<p style="opacity: 0.6;">Strava unavailable</p>';

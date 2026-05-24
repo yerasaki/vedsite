@@ -304,6 +304,28 @@ def spotify_queue():
     
     return jsonify({"queue": []})
 
+
+@app.route('/api/spotify/recently-played')
+def spotify_recently_played():
+    """Get recently played tracks (used when playback is idle).
+    Pulls 20 so the frontend can dedupe repeats and still surface 5 unique."""
+    response = spotify_request("/me/player/recently-played?limit=20")
+    if response is None:
+        return jsonify({"tracks": [], "error": "Spotify unavailable"})
+    if response.status_code == 200:
+        data = response.json()
+        tracks = []
+        for item in data.get('items', []):
+            track = item['track']
+            tracks.append({
+                "track_name": track['name'],
+                "artist_name": track['artists'][0]['name'],
+                "album_image": track['album']['images'][2]['url'],  # 64x64
+                "played_at": item.get('played_at'),
+            })
+        return jsonify({"tracks": tracks})
+    return jsonify({"tracks": []})
+
 # STRAVA ENDPOINTS
 
 @app.route('/api/strava/recent')
@@ -327,22 +349,14 @@ def strava_recent():
         if detail_resp is not None and detail_resp.status_code == 200:
             calories = detail_resp.json().get('calories')
 
-        # Build location string; fall back gracefully
-        city = a.get('location_city')
-        state = a.get('location_state')
-        country = a.get('location_country')
-        location = ", ".join([p for p in [city, state, country] if p]) or None
-
         results.append({
             "name": a['name'],
             "type": a['type'],
             "start_date_local": a['start_date_local'],
-            "timezone": a.get('timezone'),        # e.g. "(GMT-05:00) America/New_York"
             "moving_time": a['moving_time'],      # seconds
             "elapsed_time": a['elapsed_time'],    # seconds
             "distance": a['distance'],            # meters
             "calories": calories,                 # kcal, may be null
-            "location": location,                 # may be null
             "activity_url": f"https://www.strava.com/activities/{a['id']}",
         })
 
