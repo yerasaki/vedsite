@@ -52,7 +52,7 @@ a, button, .film-card, .top4-card, .artist-card {
 .page-container {
     position: relative;
     z-index: 10 !important;
-    padding: 20px 50px clamp(60px, 8vh, 90px);
+    padding: 20px 50px 20px;
     height: 100vh;
     box-sizing: border-box;
     overflow-y: auto;
@@ -101,6 +101,11 @@ a, button, .film-card, .top4-card, .artist-card {
     gap: 20px;
     flex: 1;
     min-height: 600px;
+    /* Clearance for the fixed .social-links pill (bottom:16px + ~46px tall).
+       Lives on this in-flow child rather than .page-container's padding-bottom,
+       which WebKit/Blink drop from a scroll container's scrollable area. */
+    padding-bottom: 90px;
+    box-sizing: border-box;
 }
 
 .column {
@@ -444,20 +449,24 @@ a, button, .film-card, .top4-card, .artist-card {
 
 .film-card .title {
     font-size: 15px;
+    line-height: 1.3;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 0;
 }
 
 .film-card .rating {
     font-size: 15px;
     color: #ffcc00;
     margin-top: 2px;
+    flex-shrink: 0;
 }
 
 .film-card .year {
     font-size: 14px;
     opacity: 0.6;
+    flex-shrink: 0;
 }
 
 /* =============================================================================
@@ -490,7 +499,11 @@ a, button, .film-card, .top4-card, .artist-card {
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto 1fr;
+    /* minmax(0,1fr) lets the numerals row yield first when the card is short,
+       and align-content:start keeps rows top-anchored — so the title (row 1)
+       is never the content pushed out and clipped by overflow:hidden. */
+    grid-template-rows: auto auto minmax(0, 1fr);
+    align-content: start;
     column-gap: 10px;
     row-gap: 2px;
     padding: 12px 14px 11px;
@@ -535,7 +548,7 @@ a, button, .film-card, .top4-card, .artist-card {
     z-index: 2;
     font-weight: 600;
     font-size: 15px;
-    line-height: 1.2;
+    line-height: 1.3;
     color: #f2f2f2;
     white-space: nowrap;
     overflow: hidden;
