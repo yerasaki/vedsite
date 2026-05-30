@@ -1,6 +1,7 @@
 # [vedsite.com](https://vedsite.com)
-deployed on cloudflare pages, hosted on AWS EC2 in Docker with nginx reverse proxy <br>
-ssh portfolio on port 22 made with go & bubble tea, wish frameworks <br>
+frontend deployed on cloudflare pages <br>
+backend api self-hosted on my raspberry pi 5: flask + docker, exposed via cloudflare tunnel <br>
+ssh portfolio on port 22, built with go + charm's wish & bubble tea frameworks. oracle cloud free-tier vm acts as a public tcp relay via socat → pi over tailscale <br>
 ssh portfolio.vedsite.com
 
 # project structure
