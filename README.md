@@ -30,11 +30,26 @@ vedsite/
 │   ├── experience.css
 │   └── misc.css
 ├── icons/
+│   ├── favicon/
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon-96x96.png
+│   │   ├── favicon.ico
+│   │   ├── favicon.svg
+│   │   ├── web-app-manifest-192x192.png
+│   │   └── web-app-manifest-512x512.png
+│   ├── bird.jpg
+│   ├── bird.png
+│   ├── color_palette.png
+│   ├── email.png
 │   ├── email.svg
 │   ├── github.svg
+│   ├── lastfm.svg
 │   ├── letterboxd.svg
+│   ├── linkedin.png
 │   ├── linkedin.svg
+│   ├── serializd.svg
 │   ├── spotify.svg
+│   ├── strava.svg
 │   ├── tab_icon.png
 │   └── web.svg
 ├── media/
@@ -44,20 +59,27 @@ vedsite/
 │   │   ├── 3.mp4
 │   │   ├── 4.jpeg
 │   │   ├── 5.jpeg
-│   │   └── 6.mp4
+│   │   ├── 6.jpeg
+│   │   ├── 7.jpeg
+│   │   ├── 8.mov
+│   │   ├── 9.mov
+│   │   └── 10.jpeg
 │   ├── carbon/
 │   │   ├── carbon_loss.png
 │   │   └── carbon_win.mp4
+│   ├── pl/
+│   │   ├── linear.png
+│   │   └── polynomial.png
 │   ├── preview/
 │   │   ├── carbon_preview.png
 │   │   ├── lightemall_preview.png
 │   │   ├── pl_preview.jpg
 │   │   ├── pl_preview.png
 │   │   ├── sanguine_preview.png
-│   │   ├── schema_preview.png
 │   │   ├── squashhub_preview.png
 │   │   └── ssh_preview.png
 │   ├── sq/
+│   │   ├── schema_preview.png
 │   │   ├── sq_admin.mp4
 │   │   ├── sq_attendance.mp4
 │   │   ├── sq_email.png
@@ -76,15 +98,20 @@ vedsite/
 │   └── ssh.html
 ├── stats/
 │   ├── Dockerfile
+│   ├── docker-compose.yml
 │   ├── requirements.txt
 │   ├── server.py
 │   └── top4.json
 ├── .gitignore
 ├── LICENSE
+├── README.md
+├── Ved_Deshpande_Resume.pdf
 ├── about.html
 ├── experience.html
 ├── index.html
 ├── main.go
+├── manifest.json
 ├── misc.html
-└── projects.html
+├── projects.html
+└── sw.js
 ```
