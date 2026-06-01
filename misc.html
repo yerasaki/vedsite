@@ -199,6 +199,7 @@
                 // Stay at 1s while page is active
                 pollInterval = 1000;
 
+                const prevMode = displayMode;
                 setMode(data.is_playing ? 'playing' : 'paused');
 
                 // Card always reflects the track currently in the player —
@@ -222,8 +223,13 @@
 
                 // In paused mode, the queue slot becomes the 4 songs played *before*
                 // the paused track. Pass the paused track in so we can dedupe against it.
+                // Only re-fetch when we just entered paused mode or the paused track
+                // changed — the recent-tracks endpoint does a Spotify lookup per song,
+                // so we don't want to hammer it on every 1s poll.
                 if (!data.is_playing) {
-                    await renderRecentlyPlayed(data.track_name, data.artist_name);
+                    if (prevMode !== 'paused' || trackChanged) {
+                        await renderRecentlyPlayed(data.track_name, data.artist_name);
+                    }
                     return;
                 }
 
@@ -235,7 +241,7 @@
 
         async function renderRecentlyPlayed(skipName, skipArtist) {
             try {
-                const res = await fetch(`${API_BASE}/spotify/recently-played`);
+                const res = await fetch(`${API_BASE}/lastfm/recent-tracks`);
                 const data = await res.json();
                 const tracks = data.tracks || [];
                 if (tracks.length === 0) return;

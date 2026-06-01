@@ -423,8 +423,80 @@ def lastfm_top_artists():
             })
         
         return jsonify({"artists": artists})
-    
+
     return jsonify({"error": "Could not fetch data"}), 500
+
+
+@app.route('/api/lastfm/recent-tracks')
+def lastfm_recent_tracks():
+    """Recent scrobbles for the paused-mode queue.
+
+    The track list comes from Last.fm (always available regardless of Spotify
+    player state, so the queue never gets stuck on 'Loading queue...'). Album
+    thumbnails are looked up on Spotify per track so we never surface Last.fm's
+    generic placeholder art. user.getrecenttracks is a public read method, so
+    unlike user.gettopartists it needs no session key / signature.
+    """
+    response = requests.get(
+        "http://ws.audioscrobbler.com/2.0/",
+        params={
+            "method": "user.getrecenttracks",
+            "user": LASTFM_USER,
+            "limit": 8,  # margin for dedupe + skipping the paused track; FE shows 4
+            "api_key": LASTFM_API_KEY,
+            "format": "json",
+        }
+    )
+
+    if response.status_code != 200:
+        return jsonify({"tracks": []})
+
+    data = response.json()
+    spotify_token = get_spotify_token()
+    tracks = []
+
+    for t in data.get('recenttracks', {}).get('track', []):
+        # Last.fm prepends a "now playing" pseudo-entry during live playback; skip it.
+        if t.get('@attr', {}).get('nowplaying') == 'true':
+            continue
+
+        name = t['name']
+        artist = t['artist']['#text']
+
+        # Always source the thumbnail from Spotify so we never show a stub.
+        album_image = None
+        if spotify_token:
+            try:
+                search = requests.get(
+                    "https://api.spotify.com/v1/search",
+                    headers={"Authorization": f"Bearer {spotify_token}"},
+                    params={"q": f"{name} {artist}", "type": "track", "limit": 1}
+                )
+                if search.status_code == 200:
+                    items = search.json().get('tracks', {}).get('items', [])
+                    if items:
+                        images = items[0]['album'].get('images', [])
+                        if images:
+                            album_image = images[-1]['url']  # smallest = 64x64 thumb
+            except Exception:
+                pass
+
+        # Fall back to Last.fm art only if Spotify missed.
+        if not album_image:
+            lastfm_imgs = {img['size']: img['#text'] for img in t.get('image', [])}
+            album_image = lastfm_imgs.get('medium') or lastfm_imgs.get('large') or ''
+
+        # Never emit a track without real art (no stubs).
+        if not album_image:
+            continue
+
+        tracks.append({
+            "track_name": name,
+            "artist_name": artist,
+            "album_image": album_image,
+        })
+
+    return jsonify({"tracks": tracks})
 
 # LETTERBOXD ENDPOINTS
 

@@ -335,6 +335,7 @@ a, button, .film-card, .top4-card, .artist-card {
 }
 
 .queue-item-info {
+    flex: 1;
     min-width: 0;
 }
 
@@ -357,6 +358,9 @@ a, button, .film-card, .top4-card, .artist-card {
 .queue-artist {
     font-size: clamp(9px, 1.2vw, 11px);
     opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* =============================================================================
