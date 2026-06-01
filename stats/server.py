@@ -11,6 +11,7 @@ import json
 import time
 import hashlib
 import feedparser
+from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
 
@@ -453,46 +454,53 @@ def lastfm_recent_tracks():
 
     data = response.json()
     spotify_token = get_spotify_token()
-    tracks = []
 
+    # Collect candidate scrobbles first (skip Last.fm's now-playing pseudo-entry),
+    # keeping each track's Last.fm art as a fallback.
+    candidates = []
     for t in data.get('recenttracks', {}).get('track', []):
-        # Last.fm prepends a "now playing" pseudo-entry during live playback; skip it.
         if t.get('@attr', {}).get('nowplaying') == 'true':
             continue
+        lastfm_imgs = {img['size']: img['#text'] for img in t.get('image', [])}
+        candidates.append({
+            "track_name": t['name'],
+            "artist_name": t['artist']['#text'],
+            "lastfm_image": lastfm_imgs.get('medium') or lastfm_imgs.get('large') or '',
+        })
 
-        name = t['name']
-        artist = t['artist']['#text']
-
-        # Always source the thumbnail from Spotify so we never show a stub.
-        album_image = None
+    def resolve_image(c):
+        """Look up a small album-art URL on Spotify, falling back to Last.fm art."""
         if spotify_token:
             try:
                 search = requests.get(
                     "https://api.spotify.com/v1/search",
                     headers={"Authorization": f"Bearer {spotify_token}"},
-                    params={"q": f"{name} {artist}", "type": "track", "limit": 1}
+                    params={"q": f"{c['track_name']} {c['artist_name']}", "type": "track", "limit": 1},
+                    timeout=5,
                 )
                 if search.status_code == 200:
                     items = search.json().get('tracks', {}).get('items', [])
                     if items:
                         images = items[0]['album'].get('images', [])
                         if images:
-                            album_image = images[-1]['url']  # smallest = 64x64 thumb
+                            return images[-1]['url']  # smallest = 64x64 thumb
             except Exception:
                 pass
+        return c["lastfm_image"]
 
-        # Fall back to Last.fm art only if Spotify missed.
-        if not album_image:
-            lastfm_imgs = {img['size']: img['#text'] for img in t.get('image', [])}
-            album_image = lastfm_imgs.get('medium') or lastfm_imgs.get('large') or ''
+    # Resolve thumbnails concurrently so a paused-queue refresh costs one round-trip
+    # of latency instead of one Spotify search per track.
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        images = pool.map(resolve_image, candidates)
 
+    tracks = []
+    for c, album_image in zip(candidates, images):
         # Never emit a track without real art (no stubs).
         if not album_image:
             continue
-
         tracks.append({
-            "track_name": name,
-            "artist_name": artist,
+            "track_name": c["track_name"],
+            "artist_name": c["artist_name"],
             "album_image": album_image,
         })
 
