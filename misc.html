@@ -356,7 +356,6 @@
                 const slots = Array.from({ length: 4 }, (_, i) => data.queue[i] || null);
                 container.innerHTML = slots.map((track, i) => track ? `
                     <div class="queue-item">
-                        <span class="queue-num">${i + 1}</span>
                         <img src="${track.album_image}" alt="Album">
                         <div class="queue-item-info">
                             <div class="queue-track">${track.track_name}</div>
@@ -365,7 +364,6 @@
                     </div>
                 ` : `
                     <div class="queue-item queue-item-empty">
-                        <span class="queue-num">${i + 1}</span>
                         <div class="queue-item-info">
                             <div class="queue-track">—</div>
                             <div class="queue-artist">empty</div>

@@ -339,15 +339,6 @@ a, button, .film-card, .top4-card, .artist-card {
     min-width: 0;
 }
 
-.queue-num {
-    flex-shrink: 0;
-    font-size: clamp(10px, 1.3vw, 12px);
-    font-weight: bold;
-    opacity: 0.5;
-    width: clamp(12px, 1.6vw, 16px);
-    text-align: center;
-}
-
 .queue-track {
     font-size: clamp(11px, 1.4vw, 13px);
     white-space: nowrap;
@@ -535,6 +526,17 @@ a, button, .film-card, .top4-card, .artist-card {
         inset 0 1px 0 rgba(252, 76, 2, 0.12),
         0 12px 28px rgba(0, 0, 0, 0.55),
         0 0 0 1px rgba(252, 76, 2, 0.15);
+}
+
+/* Always show the bright orange border on touch/mobile devices (no hover). */
+@media (hover: none) {
+    .strava-card {
+        border-color: rgba(252, 76, 2, 0.75);
+        box-shadow:
+            inset 0 1px 0 rgba(252, 76, 2, 0.12),
+            0 6px 18px rgba(0, 0, 0, 0.45),
+            0 0 0 1px rgba(252, 76, 2, 0.15);
+    }
 }
 
 .strava-ink {
@@ -852,7 +854,6 @@ section:has(#top4-grid) {
     }
     .queue-track  { font-size: 14px; }
     .queue-artist { font-size: 12px; }
-    .queue-num    { font-size: 13px; width: 18px; }
 
 
     .film-card {
