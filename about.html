@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="frontend/shared.css" />
     <link rel="stylesheet" href="frontend/subpage/subpage.css" />
     <link rel="stylesheet" href="frontend/about/about.css" />
     <title>about me</title>
@@ -128,8 +129,8 @@
     <!-- Expanded overlay -->
     <div class="expanded-overlay" id="expanded-overlay">
         <button class="close-btn" id="close-expanded">&times;</button>
-        <img class="expanded-media" id="expanded-media-img" style="display: none;">
-        <video class="expanded-media" id="expanded-media-video" autoplay loop muted playsinline style="display: none;"></video>
+        <img class="expanded-media hidden" id="expanded-media-img">
+        <video class="expanded-media hidden" id="expanded-media-video" autoplay loop muted playsinline></video>
         <div class="expanded-description" id="expanded-description"></div>
     </div>
 

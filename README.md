@@ -29,7 +29,8 @@ vedsite/
 │   │   ├── subprojects.css
 │   │   └── subprojects.js
 │   ├── experience.css
-│   └── misc.css
+│   ├── misc.css
+│   └── shared.css
 ├── icons/
 │   ├── favicon/
 │   │   ├── apple-touch-icon.png
@@ -38,20 +39,14 @@ vedsite/
 │   │   ├── favicon.svg
 │   │   ├── web-app-manifest-192x192.png
 │   │   └── web-app-manifest-512x512.png
-│   ├── bird.jpg
-│   ├── bird.png
-│   ├── color_palette.png
-│   ├── email.png
 │   ├── email.svg
 │   ├── github.svg
 │   ├── lastfm.svg
 │   ├── letterboxd.svg
-│   ├── linkedin.png
 │   ├── linkedin.svg
 │   ├── serializd.svg
 │   ├── spotify.svg
 │   ├── strava.svg
-│   ├── tab_icon.png
 │   └── web.svg
 ├── media/
 │   ├── about/
@@ -75,7 +70,6 @@ vedsite/
 │   │   ├── carbon_preview.png
 │   │   ├── lightemall_preview.png
 │   │   ├── pl_preview.jpg
-│   │   ├── pl_preview.png
 │   │   ├── sanguine_preview.png
 │   │   ├── squashhub_preview.png
 │   │   └── ssh_preview.png

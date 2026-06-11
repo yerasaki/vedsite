@@ -1,0 +1,16 @@
+/* Shared across all pages: site font + floating-shape keyframes */
+
+@font-face {
+    font-family: "sfpro_d";
+    src: url(../font/SF-Pro-Display-Medium.otf);
+}
+
+@keyframes float-and-roll-left {
+    from { transform: translateX(-100px) rotate(0deg); }
+    to { transform: translateX(calc(100vw + 100px)) rotate(-360deg); }
+}
+
+@keyframes float-and-roll-right {
+    from { transform: translateX(calc(100vw + 100px)) rotate(0deg); }
+    to { transform: translateX(-100px) rotate(360deg); }
+}

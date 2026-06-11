@@ -215,7 +215,7 @@ shapes.forEach((shape, index) => {
     shape.addEventListener('click', (e) => {
         e.preventDefault();
 
-        shapeData[index].isHovering = true;// Disable hover state
+        shapeData[index].isHovering = true; // disable hover state during transition
 
         const page = shape.dataset.page;
         const data = shapeData[index];

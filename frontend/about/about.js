@@ -181,13 +181,13 @@ document.querySelectorAll('.gallery-card').forEach(card => {
         const desc = card.dataset.description;
 
         if (video) {
-            expandedImg.style.display = 'none';
-            expandedVideo.style.display = 'block';
+            expandedImg.classList.add('hidden');
+            expandedVideo.classList.remove('hidden');
             expandedVideo.src = video.src;
             expandedVideo.play();
         } else if (img) {
-            expandedVideo.style.display = 'none';
-            expandedImg.style.display = 'block';
+            expandedVideo.classList.add('hidden');
+            expandedImg.classList.remove('hidden');
             expandedImg.src = img.src;
         }
 

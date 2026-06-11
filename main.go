@@ -30,7 +30,6 @@ type Shape struct {
 	vx, vy float64
 	form   int
 	color  lipgloss.Color
-	label  string
 }
 
 var shapeChars = []string{"#", "@", "*", "+"}
@@ -41,8 +40,6 @@ var pageColors = []lipgloss.Color{
 	lipgloss.Color("#D4A017"), // experience (mustard)
 	lipgloss.Color("#069494"), // misc
 }
-
-var pageLabels = []string{"about", "projects", "experience", "misc"}
 
 type tickMsg time.Time
 
@@ -131,7 +128,11 @@ func notifyVisitor(s ssh.Session) {
 			ip, location, durationStr, localTime.Format("Jan 2 15:04:05 MST"))
 	}
 
-	client.Post(discordWebhook, "application/json", bytes.NewBuffer([]byte(msg)))
+	if resp, err := client.Post(discordWebhook, "application/json", bytes.NewBuffer([]byte(msg))); err != nil {
+		log.Error("Discord webhook failed", "error", err)
+	} else {
+		resp.Body.Close()
+	}
 }
 
 func initialModel(renderer *lipgloss.Renderer) model {
@@ -140,17 +141,10 @@ func initialModel(renderer *lipgloss.Renderer) model {
 		shapes[i] = Shape{
 			x:     float64(rand.Intn(60) + 10),
 			y:     float64(rand.Intn(15) + 3),
-			vx:    float64(rand.Intn(3)-1) + 0.5,
+			vx:    float64(rand.Intn(3)-1) + 0.5, // {-0.5, 0.5, 1.5} — never zero
 			vy:    float64(rand.Intn(3)-1) + 0.5,
 			form:  i % len(shapeChars),
 			color: pageColors[i],
-			label: pageLabels[i],
-		}
-		if shapes[i].vx == 0 {
-			shapes[i].vx = 1
-		}
-		if shapes[i].vy == 0 {
-			shapes[i].vy = 1
 		}
 	}
 	return model{

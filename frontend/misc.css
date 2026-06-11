@@ -896,3 +896,13 @@ section:has(#top4-grid) {
         height: 50px;
     }
 }
+/* Placeholder text for empty/unavailable card lists (inserted by JS) */
+.muted-note {
+    opacity: 0.6;
+}
+
+/* Card wrappers that are links but shouldn't look like them */
+.card-link {
+    text-decoration: none;
+    color: inherit;
+}

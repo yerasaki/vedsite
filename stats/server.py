@@ -1,10 +1,11 @@
 """
 flask backend for personal site
-handles: Spotify (with auto token refresh), Last.fm, Letterboxd
+handles: Spotify and Strava (with auto token refresh), Last.fm, Letterboxd
 """
 
 from flask import Flask, jsonify
 import os
+import re
 import requests
 import base64
 import json
@@ -15,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 @app.after_request
@@ -25,7 +26,7 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
     return response
 
-# CONFIGURATION - Your API credentials
+# CONFIGURATION
 
 SPOTIFY_CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
 SPOTIFY_CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
@@ -42,45 +43,45 @@ STRAVA_CLIENT_ID = os.environ["STRAVA_CLIENT_ID"]
 STRAVA_CLIENT_SECRET = os.environ["STRAVA_CLIENT_SECRET"]
 STRAVA_TOKENS_FILE = os.environ.get("STRAVA_TOKENS_FILE", "strava_tokens.json")
 
-# SPOTIFY - Token Management
+# TOKEN FILE HELPERS - shared by Spotify and Strava
 
-def load_spotify_tokens():
+def load_tokens(path, label):
     """Load tokens from file"""
     try:
-        with open(SPOTIFY_TOKENS_FILE, 'r') as f:
+        with open(path, 'r') as f:
             content = f.read()
             if not content.strip():
-                print("ERROR: Spotify tokens file is empty")
+                print(f"ERROR: {label} tokens file is empty")
                 return None
             return json.loads(content)
     except FileNotFoundError:
-        print("ERROR: Spotify tokens file not found")
+        print(f"ERROR: {label} tokens file not found")
         return None
     except json.JSONDecodeError as e:
-        print(f"ERROR: Spotify tokens file corrupted: {e}")
+        print(f"ERROR: {label} tokens file corrupted: {e}")
         return None
 
-def save_spotify_tokens(tokens):
+def save_tokens(path, tokens):
     """Save tokens atomically using os.replace"""
-    tmp_path = SPOTIFY_TOKENS_FILE + '.tmp'
-    
-    # Write to temp file
+    tmp_path = path + '.tmp'
+
     with open(tmp_path, 'w') as f:
         json.dump(tokens, f)
         f.flush()
         os.fsync(f.fileno())
-    
+
     # Verify temp file is valid JSON before replacing
     with open(tmp_path, 'r') as f:
         json.loads(f.read())
-    
+
     # Atomic rename - never truncates destination without replacing
-    os.replace(tmp_path, SPOTIFY_TOKENS_FILE)
-    return True
+    os.replace(tmp_path, path)
+
+# SPOTIFY - Token Management
 
 def refresh_spotify_token():
     """Get new access token using refresh token"""
-    tokens = load_spotify_tokens()
+    tokens = load_tokens(SPOTIFY_TOKENS_FILE, "Spotify")
     if not tokens:
         return None
     
@@ -101,21 +102,21 @@ def refresh_spotify_token():
     )
     
     new_tokens = response.json()
-    
-    # Check if refresh succeeded
+
     if 'access_token' not in new_tokens:
         print(f"ERROR: Spotify refresh failed: {new_tokens}")
         return None
-    
+
+    # Spotify returns a relative expires_in delta; 300s buffer forces early refresh.
     tokens['access_token'] = new_tokens['access_token']
     tokens['expires_at'] = time.time() + new_tokens['expires_in'] - 300
-    save_spotify_tokens(tokens)
-    
+    save_tokens(SPOTIFY_TOKENS_FILE, tokens)
+
     return tokens['access_token']
 
 def get_spotify_token():
     """Get valid token, refreshing if expired"""
-    tokens = load_spotify_tokens()
+    tokens = load_tokens(SPOTIFY_TOKENS_FILE, "Spotify")
     if not tokens:
         return None
     
@@ -139,44 +140,10 @@ def spotify_request(endpoint):
 
 # STRAVA - Token Management
 
-def load_strava_tokens():
-    """Load tokens from file"""
-    try:
-        with open(STRAVA_TOKENS_FILE, 'r') as f:
-            content = f.read()
-            if not content.strip():
-                print("ERROR: Strava tokens file is empty")
-                return None
-            return json.loads(content)
-    except FileNotFoundError:
-        print("ERROR: Strava tokens file not found")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Strava tokens file corrupted: {e}")
-        return None
-
-def save_strava_tokens(tokens):
-    """Save tokens atomically using os.replace"""
-    tmp_path = STRAVA_TOKENS_FILE + '.tmp'
-
-    # Write to temp file
-    with open(tmp_path, 'w') as f:
-        json.dump(tokens, f)
-        f.flush()
-        os.fsync(f.fileno())
-
-    # Verify temp file is valid JSON before replacing
-    with open(tmp_path, 'r') as f:
-        json.loads(f.read())
-
-    # Atomic rename - never truncates destination without replacing
-    os.replace(tmp_path, STRAVA_TOKENS_FILE)
-    return True
-
 def refresh_strava_token():
     """Get new access token using refresh token. Strava rotates refresh tokens,
     so we persist whatever comes back."""
-    tokens = load_strava_tokens()
+    tokens = load_tokens(STRAVA_TOKENS_FILE, "Strava")
     if not tokens:
         return None
 
@@ -196,7 +163,6 @@ def refresh_strava_token():
 
     new_tokens = response.json()
 
-    # Check if refresh succeeded
     if 'access_token' not in new_tokens:
         print(f"ERROR: Strava refresh failed: {new_tokens}")
         return None
@@ -207,13 +173,13 @@ def refresh_strava_token():
     tokens['access_token'] = new_tokens['access_token']
     tokens['refresh_token'] = new_tokens['refresh_token']
     tokens['expires_at'] = new_tokens['expires_at'] - 300
-    save_strava_tokens(tokens)
+    save_tokens(STRAVA_TOKENS_FILE, tokens)
 
     return tokens['access_token']
 
 def get_strava_token():
     """Get valid token, refreshing if expired"""
-    tokens = load_strava_tokens()
+    tokens = load_tokens(STRAVA_TOKENS_FILE, "Strava")
     if not tokens:
         return None
 
@@ -294,7 +260,7 @@ def spotify_queue():
         data = response.json()
         
         queue = []
-        for track in data.get('queue', [])[:4]:  # Limit to 4
+        for track in data.get('queue', [])[:4]:
             queue.append({
                 "track_name": track['name'],
                 "artist_name": track['artists'][0]['name'],
@@ -331,7 +297,7 @@ def spotify_recently_played():
 
 @app.route('/api/strava/recent')
 def strava_recent():
-    """Get 3 most recent activities with time, location, calories"""
+    """Get 4 most recent activities with time, distance, calories"""
     response = strava_request("/athlete/activities", params={"per_page": 4, "page": 1})
 
     if response is None:
@@ -390,13 +356,12 @@ def lastfm_top_artists():
         data = response.json()
         artists = []
         
-        # Get Spotify token for artist image lookup
         spotify_token = get_spotify_token()
-        
+
         for artist in data['topartists']['artist']:
-            # Search Spotify for artist image
             image_url = None
             if spotify_token:
+                # A failed image lookup must not kill the whole response.
                 try:
                     spotify_search = requests.get(
                         "https://api.spotify.com/v1/search",
@@ -413,7 +378,7 @@ def lastfm_top_artists():
                             images = spotify_data['artists']['items'][0].get('images', [])
                             if images:
                                 image_url = images[0]['url']  # Largest image
-                except:
+                except (requests.RequestException, ValueError, KeyError, IndexError):
                     pass
             
             artists.append({
@@ -484,7 +449,7 @@ def lastfm_recent_tracks():
                         images = items[0]['album'].get('images', [])
                         if images:
                             return images[-1]['url']  # smallest = 64x64 thumb
-            except Exception:
+            except (requests.RequestException, ValueError, KeyError, IndexError):
                 pass
         return c["lastfm_image"]
 
@@ -515,9 +480,8 @@ def letterboxd_recent():
     
     films = []
     for entry in feed.entries[:4]:
-        # Convert numeric rating to stars
         rating = entry.get('letterboxd_memberrating', None)
-        
+
         films.append({
             "title": entry.letterboxd_filmtitle,
             "year": entry.letterboxd_filmyear,
@@ -525,7 +489,6 @@ def letterboxd_recent():
             "watched_date": entry.letterboxd_watcheddate,
             "url": entry.link,
             "tmdb_id": entry.tmdb_movieid,
-            # Poster: extract from summary or use TMDB API
             "poster": extract_poster_from_summary(entry.summary)
         })
     
@@ -541,17 +504,11 @@ def letterboxd_top4():
 def extract_poster_from_summary(summary):
     """Extract poster URL from Letterboxd RSS summary HTML"""
     # Summary contains: <img src="https://a.ltrbxd.com/resized/film-poster/..." />
-    import re
     match = re.search(r'src="([^"]+)"', summary)
     return match.group(1) if match else None
 
 # RUN SERVER
 
 if __name__ == '__main__':
-    print("Starting server on http://127.0.0.1:5000")
-    print("Endpoints:")
-    print("  GET /api/spotify/now-playing")
-    print("  GET /api/spotify/queue")
-    print("  GET /api/lastfm/top-artists")
-    print("  GET /api/letterboxd/recent")
+    print("Starting server on http://0.0.0.0:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)

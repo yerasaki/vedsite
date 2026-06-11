@@ -1,8 +1,3 @@
-@font-face {
-    font-family: "sfpro_d";
-    src: url(../../font/SF-Pro-Display-Medium.otf);
-}
-
 * {
     margin: 0;
     padding: 0;
@@ -290,26 +285,6 @@ a:not(.nav-shape):not(.home-btn):not(.back-btn):not(.resume-btn) {
     border-radius: 6rem;
 }
 
-@keyframes float-and-roll-left {
-    from {
-        transform: translateX(-100px) rotate(0deg);
-    }
-
-    to {
-        transform: translateX(calc(100vw + 100px)) rotate(-360deg);
-    }
-}
-
-@keyframes float-and-roll-right {
-    from {
-        transform: translateX(calc(100vw + 100px)) rotate(0deg);
-    }
-
-    to {
-        transform: translateX(-100px) rotate(360deg);
-    }
-}
-
 /* =============================================================================
    CARD GRID (projects.html landing page)
    ============================================================================= */
@@ -577,4 +552,12 @@ body:has(#cards) {
             display: block;
         }
     }
+}
+/* projects.html overrides (body class set in projects.html) */
+body.projects-page {
+    background-color: rebeccapurple;
+}
+
+body.projects-page #mousetrailer {
+    background: white;
 }

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
     <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
     <title>SSH portfolio</title>
     <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
@@ -125,8 +126,9 @@
                     <span>Wish</span>
                     <span>Bubble Tea</span>
                     <span>Lip Gloss</span>
-                    <span>Docker</span>
-                    <span>AWS EC2</span>
+                    <span>Raspberry Pi</span>
+                    <span>Oracle Cloud</span>
+                    <span>Tailscale</span>
                 </div>
 
                 <p>
@@ -156,7 +158,9 @@
                     <span class="arrow">→</span>
                     <span class="node">SSH (port 22)</span>
                     <span class="arrow">→</span>
-                    <span class="node">Docker</span>
+                    <span class="node">Oracle relay (socat)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Pi over Tailscale</span>
                     <span class="arrow">→</span>
                     <span class="node">Wish server</span>
                     <span class="arrow">→</span>
@@ -164,25 +168,19 @@
                 </div>
 
                 <p>
-                    The Go binary runs inside a Docker container on my AWS EC2 instance in Ohio. I chose Docker for easy
-                    deployment and isolation, I was able to quickly build the Go binary, drop it in the container, and
-                    run
-                    it without worrying about Go versions or library conflicts on the host machine. The container runs a
-                    Wish
-                    SSH server that listens on port 22, and every incoming SSH connection spawns a new instance of the
-                    Bubble
-                    Tea UI. Port 22 is mapped to the container, so <code>ssh portfolio.vedsite.com</code>
-                    routes
-                    directly into the Wish server. My admin SSH runs on a different port to prevent disparity and so the
-                    portfolio
-                    can own port 22. Cloudflare handles DNS as an A record on DNS-only mode since SSH cannot be proxied
-                    on the free tier.
+                    The Go binary runs directly on my Raspberry Pi 5 at home, listening on port 22. Since the Pi sits
+                    behind my home network, an Oracle Cloud free-tier VM acts as the public entrypoint: socat relays
+                    incoming TCP on port 22 to the Pi over Tailscale, so <code>ssh portfolio.vedsite.com</code> routes
+                    into the Wish server without exposing my home IP. Every incoming SSH connection spawns a new
+                    instance of the Bubble Tea UI. The Pi's admin SSH runs on a different port to prevent disparity and
+                    so the portfolio can own port 22. Cloudflare handles DNS as an A record on DNS-only mode pointing
+                    at the Oracle VM, since SSH cannot be proxied on the free tier.
                     <br>
                     <br>
 
                     <strong>Source?</strong> The code is on my <a href="https://github.com/deshpande-ved">GitHub</a>.
                     The main logic is a single <code>main.go</code>
-                    file: model, update loop, view renderer, and SSH server setup all in ~330 lines.
+                    file: model, update loop, view renderer, and SSH server setup all in one place.
                 </p>
 
         </div>

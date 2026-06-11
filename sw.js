@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vedsite-v3';
+const CACHE_NAME = 'vedsite-v4';
 
 const STATIC_ASSETS = [
   '/',
@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   '/projects/sanguine.html',
   '/projects/lightemall.html',
   '/projects/carbon_neutrality.html',
+  '/frontend/shared.css',
   '/frontend/home/home.css',
   '/frontend/home/home.js',
   '/frontend/subpage/subpage.css',
@@ -29,6 +30,8 @@ const STATIC_ASSETS = [
   '/frontend/lightemall/lightemall.js',
   '/manifest.json',
   '/icons/favicon/favicon-96x96.png',
+  '/icons/favicon/favicon.svg',
+  '/icons/favicon/favicon.ico',
   '/icons/favicon/apple-touch-icon.png',
   '/icons/favicon/web-app-manifest-192x192.png',
   '/icons/favicon/web-app-manifest-512x512.png',
@@ -36,6 +39,9 @@ const STATIC_ASSETS = [
   '/icons/linkedin.svg',
   '/icons/spotify.svg',
   '/icons/letterboxd.svg',
+  '/icons/lastfm.svg',
+  '/icons/strava.svg',
+  '/icons/serializd.svg',
   '/icons/email.svg',
   '/icons/web.svg',
   '/font/SF-Pro-Display-Medium.otf'

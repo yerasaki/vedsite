@@ -3,11 +3,6 @@
    No dependency on subpage.css
    ============================================================================= */
 
-@font-face {
-    font-family: "sfpro_d";
-    src: url(../../font/SF-Pro-Display-Medium.otf);
-}
-
 * {
     margin: 0;
     padding: 0;
@@ -122,16 +117,6 @@ a:not(.nav-shape):not(.home-btn):not(.back-btn) {
         &:nth-child(9) { top: 85%; animation-delay: -20s; animation-duration: 21s; }
         &:nth-child(10) { top: 95%; animation-delay: -14s; animation-duration: 29s; }
     }
-}
-
-@keyframes float-and-roll-left {
-    from { transform: translateX(-100px) rotate(0deg); }
-    to { transform: translateX(calc(100vw + 100px)) rotate(-360deg); }
-}
-
-@keyframes float-and-roll-right {
-    from { transform: translateX(calc(100vw + 100px)) rotate(0deg); }
-    to { transform: translateX(-100px) rotate(360deg); }
 }
 
 /* =============================================================================

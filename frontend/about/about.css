@@ -162,6 +162,10 @@ a, button, .gallery-card, .social-links a, .close-btn {
     object-fit: contain;
 }
 
+.expanded-overlay .expanded-media.hidden {
+    display: none;
+}
+
 .expanded-overlay .expanded-description {
     margin-top: 20px;
     color: #fff;
