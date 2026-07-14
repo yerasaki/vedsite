@@ -1,6 +1,6 @@
 """
 flask backend for personal site
-handles: Spotify and Strava (with auto token refresh), Last.fm, Letterboxd
+handles: Spotify (with auto token refresh), Last.fm, Letterboxd
 """
 
 from flask import Flask, jsonify
@@ -39,11 +39,7 @@ LASTFM_USER = os.environ.get("LASTFM_USER", "yerasaki")
 
 LETTERBOXD_USER = os.environ.get("LETTERBOXD_USER", "yerasaki")
 
-STRAVA_CLIENT_ID = os.environ["STRAVA_CLIENT_ID"]
-STRAVA_CLIENT_SECRET = os.environ["STRAVA_CLIENT_SECRET"]
-STRAVA_TOKENS_FILE = os.environ.get("STRAVA_TOKENS_FILE", "strava_tokens.json")
-
-# TOKEN FILE HELPERS - shared by Spotify and Strava
+# TOKEN FILE HELPERS
 
 def load_tokens(path, label):
     """Load tokens from file"""
@@ -138,70 +134,6 @@ def spotify_request(endpoint):
     )
     return response
 
-# STRAVA - Token Management
-
-def refresh_strava_token():
-    """Get new access token using refresh token. Strava rotates refresh tokens,
-    so we persist whatever comes back."""
-    tokens = load_tokens(STRAVA_TOKENS_FILE, "Strava")
-    if not tokens:
-        return None
-
-    if 'refresh_token' not in tokens:
-        print("ERROR: No refresh_token in Strava tokens file")
-        return None
-
-    response = requests.post(
-        "https://www.strava.com/api/v3/oauth/token",
-        data={
-            "client_id": STRAVA_CLIENT_ID,
-            "client_secret": STRAVA_CLIENT_SECRET,
-            "grant_type": "refresh_token",
-            "refresh_token": tokens['refresh_token']
-        }
-    )
-
-    new_tokens = response.json()
-
-    if 'access_token' not in new_tokens:
-        print(f"ERROR: Strava refresh failed: {new_tokens}")
-        return None
-
-    # Strava returns a fresh refresh_token each time — persist it.
-    # expires_at is already an absolute epoch timestamp from Strava (unlike Spotify's
-    # expires_in delta), but we subtract 300s for the same early-refresh buffer.
-    tokens['access_token'] = new_tokens['access_token']
-    tokens['refresh_token'] = new_tokens['refresh_token']
-    tokens['expires_at'] = new_tokens['expires_at'] - 300
-    save_tokens(STRAVA_TOKENS_FILE, tokens)
-
-    return tokens['access_token']
-
-def get_strava_token():
-    """Get valid token, refreshing if expired"""
-    tokens = load_tokens(STRAVA_TOKENS_FILE, "Strava")
-    if not tokens:
-        return None
-
-    if time.time() >= tokens.get('expires_at', 0):
-        print("Strava token expired, refreshing...")
-        return refresh_strava_token()
-
-    return tokens.get('access_token')
-
-def strava_request(endpoint, params=None):
-    """Make authenticated Strava API request"""
-    token = get_strava_token()
-    if not token:
-        return None
-
-    response = requests.get(
-        f"https://www.strava.com/api/v3{endpoint}",
-        headers={"Authorization": f"Bearer {token}"},
-        params=params or {}
-    )
-    return response
-
 # SPOTIFY ENDPOINTS
 
 @app.route('/api/spotify/now-playing')
@@ -244,7 +176,8 @@ def spotify_now_playing():
                 "duration_ms": track['duration_ms'],
                 "track_url": track['external_urls']['spotify']
             })
-    
+
+    print(f"ERROR: Spotify API {response.status_code}: {response.text[:500]}")
     return jsonify({"error": "Could not fetch data"}), 500
 
 
@@ -259,8 +192,9 @@ def spotify_queue():
     if response.status_code == 200:
         data = response.json()
         
+        # Return 10 tracks; the frontend decides how many of them to render.
         queue = []
-        for track in data.get('queue', [])[:4]:
+        for track in data.get('queue', [])[:10]:
             queue.append({
                 "track_name": track['name'],
                 "artist_name": track['artists'][0]['name'],
@@ -268,7 +202,8 @@ def spotify_queue():
             })
         
         return jsonify({"queue": queue})
-    
+
+    print(f"ERROR: Spotify API {response.status_code}: {response.text[:500]}")
     return jsonify({"queue": []})
 
 
@@ -291,43 +226,8 @@ def spotify_recently_played():
                 "played_at": item.get('played_at'),
             })
         return jsonify({"tracks": tracks})
+    print(f"ERROR: Spotify API {response.status_code}: {response.text[:500]}")
     return jsonify({"tracks": []})
-
-# STRAVA ENDPOINTS
-
-@app.route('/api/strava/recent')
-def strava_recent():
-    """Get 4 most recent activities with time, distance, calories"""
-    response = strava_request("/athlete/activities", params={"per_page": 4, "page": 1})
-
-    if response is None:
-        return jsonify({"error": "Strava authentication failed"}), 503
-
-    if response.status_code != 200:
-        return jsonify({"error": f"Strava API error: {response.status_code}"}), 500
-
-    activities = response.json()
-    results = []
-
-    for a in activities:
-        # Calories require a per-activity detail call (not in the list endpoint)
-        detail_resp = strava_request(f"/activities/{a['id']}")
-        calories = None
-        if detail_resp is not None and detail_resp.status_code == 200:
-            calories = detail_resp.json().get('calories')
-
-        results.append({
-            "name": a['name'],
-            "type": a['type'],
-            "start_date_local": a['start_date_local'],
-            "moving_time": a['moving_time'],      # seconds
-            "elapsed_time": a['elapsed_time'],    # seconds
-            "distance": a['distance'],            # meters
-            "calories": calories,                 # kcal, may be null
-            "activity_url": f"https://www.strava.com/activities/{a['id']}",
-        })
-
-    return jsonify(results)
 
 # LAST.FM ENDPOINTS
 @app.route('/api/lastfm/top-artists')
@@ -390,6 +290,7 @@ def lastfm_top_artists():
         
         return jsonify({"artists": artists})
 
+    print(f"ERROR: Last.fm API {response.status_code}: {response.text[:500]}")
     return jsonify({"error": "Could not fetch data"}), 500
 
 
@@ -408,13 +309,14 @@ def lastfm_recent_tracks():
         params={
             "method": "user.getrecenttracks",
             "user": LASTFM_USER,
-            "limit": 8,  # margin for dedupe + skipping the paused track; FE shows 4
+            "limit": 14,  # margin for dedupe + skipping the paused track; yields ~10 usable
             "api_key": LASTFM_API_KEY,
             "format": "json",
         }
     )
 
     if response.status_code != 200:
+        print(f"ERROR: Last.fm API {response.status_code}: {response.text[:500]}")
         return jsonify({"tracks": []})
 
     data = response.json()
@@ -455,7 +357,7 @@ def lastfm_recent_tracks():
 
     # Resolve thumbnails concurrently so a paused-queue refresh costs one round-trip
     # of latency instead of one Spotify search per track.
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=14) as pool:
         images = pool.map(resolve_image, candidates)
 
     tracks = []
