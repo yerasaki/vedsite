@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vedsite-v5';
+const CACHE_NAME = 'vedsite-v6';
 
 const STATIC_ASSETS = [
   '/',
@@ -22,6 +22,7 @@ const STATIC_ASSETS = [
   '/frontend/about/about.js',
   '/frontend/experience.css',
   '/frontend/misc.css',
+  '/frontend/misc.js',
   '/frontend/subproject/subprojects.css',
   '/frontend/subproject/subprojects.js',
   '/frontend/sanguine/sanguine.css',
@@ -40,7 +41,6 @@ const STATIC_ASSETS = [
   '/icons/spotify.svg',
   '/icons/letterboxd.svg',
   '/icons/lastfm.svg',
-  '/icons/strava.svg',
   '/icons/serializd.svg',
   '/icons/email.svg',
   '/icons/web.svg',
