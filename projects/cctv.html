@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>MacBook CCTV</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>MacBook CCTV</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    I wanted a camera on my room without buying one, and my MacBook already has a webcam. The catch:
+                    Home Assistant can't turn a Mac's camera on. The macOS companion app only reports whether the camera
+                    is in use, as a read-only sensor. There's no service call to start it and no integration that adds
+                    one.
+                </p>
+                <p>
+                    So I added the missing piece myself: a small Python server on the Mac that Home Assistant talks to
+                    over my home network. Home Assistant never touches the camera. It flips a switch, the switch sends an
+                    HTTP request, and the server on the Mac starts or stops the capture.
+                </p>
+                <!-- MEDIA: recording: flipping the CCTV switch on the kiosk, feed appearing -->
+            </section>
+
+            <!-- two processes -->
+            <section>
+                <h2>two processes</h2>
+                <p>
+                    The whole design comes down to two processes with different lifetimes. Nearly every bug I hit while
+                    building this came from treating them as one.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>the server</strong>: Always running, always idle until asked. It's a launchd LaunchAgent,
+                        so it starts at login and restarts itself if it crashes. If it's dead, the switch in Home
+                        Assistant shows as unavailable.
+                    </div>
+                    <div class="feature">
+                        <strong>ffmpeg</strong>: The actual camera capture, started and killed by the server on demand. I
+                        never run it by hand. When the switch stopped working early on, it looked like ffmpeg needed
+                        restarting. It didn't: the server had died along with the terminal I'd started it from. Moving
+                        it into launchd fixed that for good.
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p class="hint">
+                        start → spawn ffmpeg if it isn't running · stop → SIGTERM it and clear the frame · status →
+                        running or stopped · snapshot → the latest JPEG · stream → live MJPEG to any number of viewers
+                    </p>
+                </div>
+            </section>
+
+            <!-- the stream -->
+            <section>
+                <h2>the stream</h2>
+                <p>
+                    ffmpeg writes MJPEG to stdout. A reader thread in the server scans that byte stream for JPEG start
+                    and end markers (<code>FFD8</code> … <code>FFD9</code>) and keeps only the latest complete frame in
+                    memory. Nothing is written to disk. Snapshots return that frame, and the stream endpoint pushes it
+                    to every connected client as a <code>multipart/x-mixed-replace</code> response, one JPEG after
+                    another.
+                </p>
+                <p>
+                    The first version didn't have a server at all: ffmpeg served the stream itself with
+                    <code>-listen 1</code>. That serves exactly one client, and ffmpeg <strong>exits when that client
+                    disconnects</strong>, so closing a browser tab turned the camera off. It also couldn't give Home
+                    Assistant a still image and a stream at the same time. Doing the serving in Python fixed both.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>threaded</strong>: A <code>ThreadingTCPServer</code>, so the kiosk, my phone and a laptop
+                        can all watch at once.
+                    </div>
+                    <div class="feature">
+                        <strong>HTTP/1.0 on purpose</strong>: With 1.1 keep-alive, sockets stayed open after each
+                        response and every client hang-up printed a <code>ConnectionResetError</code>. 1.0 closes after
+                        each response and the noise stopped.
+                    </div>
+                    <div class="feature">
+                        <strong>HEAD requests</strong>: Home Assistant probes with <code>HEAD</code> before it
+                        <code>GET</code>s. Without a handler that probe got a 404.
+                    </div>
+                </div>
+            </section>
+
+            <!-- the nv12 story -->
+            <section>
+                <h2>the nv12 story</h2>
+                <p>
+                    <code>ffmpeg -f avfoundation -pixel_format nv12 -framerate 30 -video_size 1280x720 -i 0 -f mjpeg -q:v 6 -</code>
+                </p>
+                <p>
+                    For a while ffmpeg refused to open the camera with an error about the <em>framerate</em>. The
+                    framerate was fine. Without <code>-pixel_format nv12</code>, ffmpeg asked the FaceTime camera for a
+                    pixel format it doesn't offer, and reported that as a framerate problem. Adding one flag fixed it.
+                    The framerate does have to be exactly 30, though: ffmpeg's default of 29.97 isn't on the camera's
+                    list.
+                </p>
+                <p>
+                    One more macOS detail: launchd runs the server with Homebrew's Python, which counts as a separate app
+                    from my terminal as far as macOS privacy settings go, so it needed its own camera permission. launchd
+                    also doesn't inherit my shell's <code>PATH</code>, so the LaunchAgent sets it explicitly or it can't
+                    find ffmpeg.
+                </p>
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>Python</span>
+                    <span>ffmpeg</span>
+                    <span>AVFoundation</span>
+                    <span>MJPEG</span>
+                    <span>launchd</span>
+                    <span>Home Assistant</span>
+                    <span>REST</span>
+                </div>
+                <p>
+                    On the Home Assistant side there are three pieces. Two REST commands send start and stop. A REST
+                    sensor polls the status every 10 seconds. A template switch reads that sensor for its on/off state
+                    and calls the commands when flipped, which is why the switch can lag reality by up to 10 seconds.
+                    The camera itself is Home Assistant's MJPEG IP Camera integration pointed at the stream and snapshot
+                    endpoints. The Generic Camera integration rejected this source.
+                </p>
+            </section>
+
+            <!-- architecture -->
+            <section>
+                <h2>architecture</h2>
+                <div class="arch-row">
+                    <span class="node">CCTV switch</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Home Assistant REST command</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Python server (Mac)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">ffmpeg + FaceTime camera</span>
+                    <span class="arrow">→</span>
+                    <span class="node">MJPEG stream → dashboards</span>
+                </div>
+                <p>
+                    The server has no authentication, so it's only reachable on my home network and is never exposed
+                    beyond it. It needs the lid open and the Mac awake; if the camera is already in use by FaceTime or
+                    Zoom, ffmpeg fails to open it and the switch stays off.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> The server is a single Python file on my Mac. It's not on GitHub yet.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>

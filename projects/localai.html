@@ -1,0 +1,252 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>Local AI</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Local AI</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- read it -->
+            <section>
+                <h2>read it</h2>
+                <div class="highlight-box">
+                    <div class="ssh-command">
+                        <code><a href="https://local-llms-3br.pages.dev/" target="_blank">local-llms-3br.pages.dev</a></code>
+                    </div>
+                    <p class="hint">my writeup on running models on iPhones: how MLX uses Apple Silicon's unified memory,
+                        quantization, which iPhones can handle it, and what it costs in battery and heat.</p>
+                </div>
+            </section>
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    I spent a couple of weeks in April 2026 trying to run my own AI instead of renting someone else's.
+                    It went in two directions. On my iPhone, a small model running entirely on the phone, no internet
+                    needed. On my MacBook, something much bigger: a fully local assistant I could text from my phone
+                    that could search the web, built from open-source parts and costing nothing per message.
+                </p>
+                <p>
+                    The phone half is the one I kept. The Mac half worked end to end, and then I measured it honestly
+                    and shelved it. This page is both, and why.
+                </p>
+                <!-- MEDIA: recording of asking Gemma a question on the iPhone, answer appearing -->
+            </section>
+
+            <!-- on the phone -->
+            <section>
+                <h2>on the phone</h2>
+                <p>
+                    Google's <strong>Gemma 4 E4B</strong>, instruction-tuned and quantized to 4 bits, running on my
+                    iPhone 15 Pro. At 4-bit it's about 2.2 GB, which fits comfortably in the phone's 8 GB of unified
+                    memory, where the CPU and GPU share one pool so nothing gets copied between them. I started with it
+                    in Google's AI Edge Gallery, and for quick questions I ended up in Locally AI, an MLX-based app. Both
+                    work in airplane mode.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>E4B over E2B</strong>: Gemma 4's edge models come in two sizes. The 15 Pro has the memory
+                        for the larger one, so that's the one I run.
+                    </div>
+                    <div class="feature">
+                        <strong>the use case</strong>: A quick search engine that lives on my phone, for the dozens of
+                        small lookups a day that don't need a frontier model or my data leaving the device.
+                    </div>
+                    <div class="feature">
+                        <strong>the costs</strong>: Local inference is hard on a phone. There's no fan, so sustained use
+                        throttles, and it drains the battery far faster than sending the same question to a server. It's
+                        the right tool for short questions, not long sessions.
+                    </div>
+                </div>
+            </section>
+
+            <!-- on the mac -->
+            <section>
+                <h2>on the mac</h2>
+                <p>
+                    The goal: text my own local model from my iPhone, from anywhere, with no cloud APIs and no
+                    subscriptions, on a base M2 Pro MacBook with 16 GB of RAM. I got there. A message went from
+                    Discord on my phone, over Tailscale, into an OpenClaw gateway on the Mac, through a local model, out
+                    to a self-hosted search engine and back. Getting there meant replacing most of the parts I started
+                    with.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>runtime</strong>: I started on Ollama, then moved to <strong>oMLX</strong>. MLX runs
+                        roughly 1.5 to 2 times faster than llama.cpp (what Ollama uses) on Apple Silicon, because it's
+                        built around unified memory instead of retrofitted to it. Model sizes don't translate between
+                        formats either: the same Gemma 4 E4B was 2.2 GB as an MLX bundle and 9.6 GB as an Ollama GGUF.
+                    </div>
+                    <div class="feature">
+                        <strong>model</strong>: Llama 3.2 3B was too small. Asked for 23 × 47, it emitted a call to a
+                        "math" tool that didn't exist. I moved to Qwen 2.5 7B at 4-bit, about as large as 16 GB allows.
+                    </div>
+                    <div class="feature">
+                        <strong>tools</strong>: Osaurus gave me around 55 MCP tools (mail, calendar, files, web,
+                        browser control), but its chat endpoint returned two JSON chunks per reply, which broke
+                        OpenClaw's parser. Search ended up as SearXNG in Docker, the cleanest part of the whole build:
+                        one container, one config file.
+                    </div>
+                    <div class="feature">
+                        <strong>chat</strong>: I started with Matrix for end-to-end encryption. A headless bot can't
+                        verify its own device, so it couldn't read encrypted rooms, and its access tokens kept getting
+                        invalidated. I switched to a Discord bot, which just works.
+                    </div>
+                </div>
+                <!-- MEDIA: screenshot of a Discord conversation with the local bot -->
+            </section>
+
+            <!-- why i shelved it -->
+            <section>
+                <h2>why i shelved it</h2>
+                <p>
+                    It worked, and it was too slow and not smart enough to be worth using. Two numbers made the
+                    decision for me.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>three minutes per reply</strong>: OpenClaw rebuilds its full context on every message:
+                        system prompt, workspace files, tool schemas, history. That came to 25,094 tokens, even for "what
+                        time is it". At about 250 tokens a second, the model spent roughly 100 seconds reading before it
+                        wrote a word. Add generation and Discord on both ends and a reply took two to three minutes.
+                    </div>
+                    <div class="feature">
+                        <strong>a capability floor</strong>: Asked to fetch a page it didn't have a URL for, the 7B model
+                        invented a plausible-looking one instead of searching first. Given three weather sources that
+                        disagreed, it listed all three instead of picking one. No prompt fixed either, because they
+                        weren't prompt problems. They were what a 7B model at 4-bit can and can't do.
+                    </div>
+                    <div class="feature">
+                        <strong>the RAM ceiling</strong>: macOS, the model, its cache and the stack's own services left
+                        almost nothing on 16 GB. Once memory pressure went yellow, the cache paged to disk and replies
+                        stalled. I couldn't run the stack and a browser at the same time.
+                    </div>
+                </div>
+                <p>
+                    Meanwhile the phone answered quick questions faster, with no network in the way, and a frontier model
+                    was smarter for hard ones.
+                    The Mac stack sat in a middle that nothing in my week actually needed. So now it's a hybrid: the
+                    local model on my phone for fast, private lookups, and a frontier model for real work.
+                </p>
+            </section>
+
+            <!-- what i kept -->
+            <section>
+                <h2>what i kept</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>tool calling is four problems</strong>: the framework has to serialize the tools, the
+                        runtime has to pass them through, the model has to emit a valid call, and the model has to pick
+                        the right tool. My model was fine at the first three. I spent a session debugging plumbing before
+                        realizing the failure was the fourth.
+                    </div>
+                    <div class="feature">
+                        <strong>a socat proxy</strong>: When a runtime won't log what it receives, put a logging proxy
+                        between the two sides and read every byte. I proved OpenClaw was sending tool schemas this way,
+                        and I've reached for the trick since.
+                    </div>
+                    <div class="feature">
+                        <strong>verify the README</strong>: OpenClaw had CLI commands for adding MCP servers, and they
+                        showed up as configured, but the connector that would actually start them wasn't shipped. If
+                        nobody has an end-to-end example of a feature working, I now assume it doesn't yet.
+                    </div>
+                    <div class="feature">
+                        <strong>ask about the ceiling first</strong>: Every session I thought the next fix would make it
+                        good enough. The weakest part, the model, set the ceiling, and nothing else could raise it. Now I
+                        test the model on the hardest prompt I care about before building anything around it.
+                    </div>
+                </div>
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>Gemma 4 E4B</span>
+                    <span>MLX</span>
+                    <span>Locally AI</span>
+                    <span>AI Edge Gallery</span>
+                    <span>oMLX</span>
+                    <span>Ollama</span>
+                    <span>Qwen 2.5 7B</span>
+                    <span>OpenClaw</span>
+                    <span>Osaurus</span>
+                    <span>MCP</span>
+                    <span>SearXNG</span>
+                    <span>Docker</span>
+                    <span>Discord</span>
+                    <span>Tailscale</span>
+                    <span>launchd</span>
+                </div>
+            </section>
+
+            <!-- architecture -->
+            <section>
+                <h2>architecture</h2>
+                <div class="arch-row">
+                    <span class="node">iPhone (Discord)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Tailscale</span>
+                    <span class="arrow">→</span>
+                    <span class="node">OpenClaw gateway</span>
+                    <span class="arrow">→</span>
+                    <span class="node">oMLX + Qwen 2.5 7B</span>
+                    <span class="arrow">→</span>
+                    <span class="node">SearXNG</span>
+                    <span class="arrow">→</span>
+                    <span class="node">reply</span>
+                </div>
+                <p>
+                    Everything ran on the MacBook, with the gateway kept alive as a LaunchAgent. On the phone there's no
+                    architecture at all: the model and the app are the whole thing.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> The writeup is on my <a href="https://github.com/deshpande-ved/local_llms"
+                        target="_blank">GitHub</a>.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>

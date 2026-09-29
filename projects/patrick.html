@@ -1,0 +1,231 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>Patrick: AINU Chatathon</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Patrick: AINU Chatathon</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- try it -->
+            <section>
+                <h2>try it</h2>
+                <div class="highlight-box">
+                    <div class="ssh-command">
+                        <code><a href="https://ainu-chatathon.vercel.app/" target="_blank">ainu-chatathon.vercel.app</a></code>
+                    </div>
+                    <p class="hint">describe an invention in a sentence and get back a sourced patent brief. use a made-up
+                        idea: a search query can itself disclose an invention.</p>
+                </div>
+            </section>
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    Patrick is what my teammate (<a href="https://github.com/cruz-andr" target="_blank">cruz-andr</a>)
+                    and I built in a day for the AINU Chatathon 2026, in the Misneach track. The prompt was "build the
+                    hire an early founder can't afford yet", and entries had to name a specific founder and a specific
+                    bottleneck.
+                </p>
+                <p>
+                    Ours: a first-time product founder with no research specialist and no patent budget, who needs to
+                    know what already exists before spending months building. Patent records are written in
+                    deliberately broad legal language and indexed by classification codes a newcomer has never seen, so
+                    founders either skip the search and build blind or stall for weeks. Patrick takes a plain-language
+                    description, plans a search, pulls real patents, quotes the passages that touch the idea, suggests
+                    alternative approaches, and hands back a brief to take to a patent attorney. It turns the first paid
+                    hour with a lawyer from orientation into answers.
+                </p>
+                <!-- MEDIA: recording of a full run on the live site, idea → plan → report -->
+            </section>
+
+            <!-- how it works -->
+            <section>
+                <h2>how it works</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>understand the invention</strong>: Founders explain what an invention does; patents
+                        describe how it works. Patrick pulls technical features out of the description and asks
+                        clarifying questions: how is the material identified, what sensors are involved, where does
+                        inference happen.
+                    </div>
+                    <div class="feature">
+                        <strong>a search plan you approve</strong>: It proposes features and search queries, and the
+                        founder edits and confirms them before anything is searched.
+                    </div>
+                    <div class="feature">
+                        <strong>real evidence</strong>: Up to three Google Patents searches, then full details for the top
+                        records, and the exact passages that relate to each feature.
+                    </div>
+                    <div class="feature">
+                        <strong>a brief for counsel</strong>: Conclusions first, then the relevant patents, feature
+                        comparisons with quotes, alternative approaches with their tradeoffs, questions for a patent
+                        professional, and exactly what was and wasn't searched. It exports as Markdown, LaTeX or a
+                        typeset PDF.
+                    </div>
+                </div>
+                <!-- MEDIA: screenshot of a finished report -->
+                <!-- MEDIA: screenshot of the exported PDF brief -->
+            </section>
+
+            <!-- rules -->
+            <section>
+                <h2>rules that don't bend</h2>
+                <p>
+                    A tool that talks about other people's legal rights can do real damage by sounding confident. So
+                    the whole project was built around a few rules that hold in the code, the model prompts, the
+                    interface and the pitch.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>never fabricate a record</strong>: Publication numbers, claims, dates and legal statuses
+                        come from the patent provider or they don't exist. The model never supplies them.
+                    </div>
+                    <div class="feature">
+                        <strong>no legal verdicts</strong>: No "patentable", no "safe to build", no risk percentages, in
+                        any wording. Patrick prepares the founder for counsel; it doesn't replace counsel.
+                    </div>
+                    <div class="feature">
+                        <strong>absence isn't evidence</strong>: Zero results means these searches found nothing, not
+                        that the idea is new. Every empty state says so.
+                    </div>
+                    <div class="feature">
+                        <strong>every claim quotes its source</strong>: A comparison has to quote the same patent it's
+                        about, word for word, and the backend checks that the quote really appears there. That proves the
+                        text is real, not that the interpretation is right, and the report says that too.
+                    </div>
+                </div>
+            </section>
+
+            <!-- what i built -->
+            <section>
+                <h2>what i built</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>the frontend</strong>: A zero-dependency static app (ES modules, no framework, no build
+                        step) that walks through idea, reviewed plan, search and report. Every string from the API, the
+                        model or a patent is written with <code>textContent</code>, never as HTML. I later rebuilt the
+                        landing page around the investigation when we rebranded as Patrick.
+                    </div>
+                    <div class="feature">
+                        <strong>the operating rules</strong>: I wrote the rules above down as a file the coding agents
+                        working in the repo had to follow, and documented the AI output contract: the model returns one
+                        JSON object, the backend rebuilds it field by field from a whitelist and throws away the rest, so
+                        a publication number or a date can only ever come from the retrieved record.
+                    </div>
+                    <div class="feature">
+                        <strong>an offline layout harness</strong>: A fixture report built to hit every awkward case (a
+                        feature nobody compared, two patents with the same title, a failed search, a partial result),
+                        clearly labelled and using identifiers that aren't real patent numbers. Anyone could work on the
+                        report's layout without an API key or access to the model.
+                    </div>
+                    <div class="feature">
+                        <strong>LaTeX and PDF briefs</strong>: The LaTeX export escapes every TeX control character in
+                        patent and model text, and the server typesets it with <code>pdflatex</code> with shell escape
+                        and file access turned off, so a malicious patent abstract can't run commands.
+                    </div>
+                </div>
+                <p>
+                    My teammate built the backend: the patent search provider, the model integration and its output
+                    validation, candidate ranking, an authenticated shared gateway with access codes and a job queue,
+                    and the public deploy.
+                </p>
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>Node.js 22</span>
+                    <span>ES modules</span>
+                    <span>SerpApi (Google Patents)</span>
+                    <span>Codex CLI</span>
+                    <span>LaTeX</span>
+                    <span>pdflatex</span>
+                    <span>SQLite</span>
+                    <span>Vercel</span>
+                    <span>Cloudflare Tunnel</span>
+                    <span>launchd</span>
+                    <span>node:test</span>
+                </div>
+                <p>
+                    There are no runtime dependencies at all: native HTTP and fetch on the server, plain ES modules in
+                    the browser. The model runs through the Codex CLI in a locked-down mode: read-only sandbox, no
+                    shell, no browser, no plugins, and input only over stdin. One model call runs at a time with a
+                    two-minute timeout, and the shared gateway queues the rest. 62 automated tests cover the backend
+                    without touching a live model or the patent provider.
+                </p>
+            </section>
+
+            <!-- architecture -->
+            <section>
+                <h2>architecture</h2>
+                <div class="arch-row">
+                    <span class="node">browser</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Vercel (static + proxy)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Cloudflare Tunnel</span>
+                    <span class="arrow">→</span>
+                    <span class="node">gateway + job queue (Mac mini)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Google Patents + Codex</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Markdown / LaTeX / PDF brief</span>
+                </div>
+                <p>
+                    Vercel serves the frontend and a short proxy function that keeps its key server-side, so visitors
+                    need no account.
+                    Everything else runs on an always-on Mac mini under launchd. Reports live in memory for an hour and
+                    disappear on restart, and the coverage limits (three searches, details for the top three records)
+                    are shown in every report rather than hidden.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> It's on <a href="https://github.com/cruz-andr/ainu-chatathon"
+                        target="_blank">GitHub</a>.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>

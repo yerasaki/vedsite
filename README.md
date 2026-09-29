@@ -68,7 +68,12 @@ vedsite/
 │   │   └── polynomial.png
 │   ├── preview/
 │   │   ├── carbon_preview.png
+│   │   ├── cctv_preview.png
+│   │   ├── homeassistant_preview.png
+│   │   ├── homelab_preview.png
 │   │   ├── lightemall_preview.png
+│   │   ├── localai_preview.png
+│   │   ├── patrick_preview.png
 │   │   ├── pl_preview.jpg
 │   │   ├── sanguine_preview.png
 │   │   ├── squashhub_preview.png
@@ -86,11 +91,17 @@ vedsite/
 │       └── ssh_subproject.png
 ├── projects/
 │   ├── carbon_neutrality.html
+│   ├── cctv.html
+│   ├── homeassistant.html
+│   ├── homelab.html
 │   ├── lightemall.html
+│   ├── localai.html
+│   ├── patrick.html
 │   ├── pl.html
 │   ├── sanguine.html
 │   ├── squashhub.html
-│   └── ssh.html
+│   ├── ssh.html
+│   └── wallmount.html
 ├── .gitignore
 ├── LICENSE
 ├── README.md

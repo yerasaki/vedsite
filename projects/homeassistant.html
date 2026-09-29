@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>Home Assistant Smart Home</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Home Assistant Smart Home</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    My room runs on Home Assistant, self-hosted in Docker on my <a href="homelab.html">Pi 5 homelab</a>.
+                    It controls my desk and floor lamps, knows whether I'm home, shows where my phone has been, plays
+                    Spotify, and can turn my MacBook into a <a href="cctv.html">security camera</a>. I use it three
+                    ways: a Galaxy tablet mounted on the wall as a kiosk, a phone dashboard, and without looking at a
+                    screen at all, through NFC tags and Siri.
+                </p>
+                <!-- MEDIA: photo: the kiosk on the wall, dashboard visible -->
+            </section>
+
+            <!-- features -->
+            <section>
+                <h2>features</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>tap to toggle</strong>: I have NFC tags wired to one script. Tap my iPhone on a tag and
+                        both lamps flip together, on or off.
+                    </div>
+                    <div class="feature">
+                        <strong>local lights</strong>: Both lamps are on Athom smart plugs running ESPHome, so they're
+                        controlled on my own network with no vendor cloud in between. If the internet goes down, the
+                        lights still work.
+                    </div>
+                    <div class="feature">
+                        <strong>Siri</strong>: The HomeKit Bridge integration exposes the lights to Apple Home, so
+                        "hey Siri, lights off" and the Control Center tiles work too.
+                    </div>
+                    <div class="feature">
+                        <strong>presence and movement</strong>: The Home Assistant iPhone app reports my location, which
+                        drives home/away state and a map on the dashboards that traces where my phone has been.
+                    </div>
+                    <div class="feature">
+                        <strong>battery levels</strong>: The iPhone, iPad and macOS companion apps report battery levels,
+                        so every device's charge is on the kiosk at a glance.
+                    </div>
+                    <div class="feature">
+                        <strong>Spotify and weather</strong>: What's playing, next to the day's forecast.
+                    </div>
+                    <div class="feature">
+                        <strong>CCTV</strong>: One switch turns my MacBook's webcam into a live camera feed on the
+                        dashboard. How that works is on its <a href="cctv.html">own page</a>.
+                    </div>
+                </div>
+                <!-- MEDIA: video: tapping the phone on an NFC tag, lamps switching -->
+            </section>
+
+            <!-- the kiosk -->
+            <section>
+                <h2>the kiosk</h2>
+                <p>
+                    The wall tablet runs one dashboard, laid out on a roughly 42-column grid (layout-card's grid layout,
+                    not the default Sections view, which can't place cards this precisely). The live panel for the
+                    homelab takes the left third, the camera and Spotify sit in the middle, the weather takes the right,
+                    and the lights run along the bottom: desk, floor, then both.
+                </p>
+                <p>
+                    kiosk-mode hides Home Assistant's header and sidebar, but only for the tablet. The tablet signs in as
+                    its own Home Assistant user and kiosk-mode targets that user, so my own account still gets the full
+                    interface everywhere else. I couldn't do it with a URL flag: the Home Assistant Android app ignores
+                    URL paths and always opens the signed-in user's default dashboard.
+                </p>
+                <!-- MEDIA: screenshot: the full kiosk dashboard -->
+                <p>
+                    The tablet itself, and the 3D-printed mount that holds it, are on the
+                    <a href="wallmount.html">wall mount page</a>.
+                </p>
+            </section>
+
+            <!-- the phone dashboard -->
+            <section>
+                <h2>the phone dashboard</h2>
+                <p>
+                    A single-column version for my phone. Two things fought me here. Setting cards to
+                    <code>100vh</code> behaved differently in the app than in a browser, so every row has a fixed
+                    height instead. And the homelab panel sits in an iframe, which swallowed scrolling until the iframe
+                    was set to only claim vertical panning, with the scrolling moved inside the panel instead of the
+                    page body.
+                </p>
+                <p>
+                    The raw YAML editor also kept mangling the CSS selectors I use for styling, so I edit this
+                    dashboard's stored JSON directly, with Home Assistant stopped, using a short Python script.
+                </p>
+                <!-- MEDIA: screenshot: the phone dashboard -->
+            </section>
+
+            <!-- location fix -->
+            <section>
+                <h2>the location bug</h2>
+                <p>
+                    For a while my location only updated while I was on home Wi-Fi. The iPhone app's most private
+                    location mode will only send updates to a server it can reach securely, and off my home network it
+                    had nowhere to send them. Giving Home Assistant a proper HTTPS address inside my tailnet, and
+                    telling it to trust the proxy in front of it, fixed it. It's still never reachable from the open
+                    internet.
+                </p>
+                <!-- MEDIA: screenshot: the movement map (cropped so home isn't shown) -->
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>Home Assistant</span>
+                    <span>Docker</span>
+                    <span>ESPHome</span>
+                    <span>HomeKit Bridge</span>
+                    <span>HACS</span>
+                    <span>layout-card</span>
+                    <span>kiosk-mode</span>
+                    <span>card-mod</span>
+                    <span>NFC</span>
+                    <span>Tailscale</span>
+                </div>
+                <p>
+                    Home Assistant runs as a plain Docker container rather than Home Assistant OS, using the host's
+                    network so it can discover the ESPHome plugs and advertise the HomeKit bridge over mDNS. Its config
+                    lives on the Pi's <a href="homelab.html#storage">SSD</a>, so it's in the nightly backup, and every
+                    config change gets a syntax check before a restart.
+                </p>
+            </section>
+
+            <!-- architecture -->
+            <section>
+                <h2>architecture</h2>
+                <div class="arch-row">
+                    <span class="node">NFC tag / Siri / dashboards</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Home Assistant (Pi)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">ESPHome plugs / MacBook camera / Spotify</span>
+                </div>
+                <p>
+                    Everything goes through Home Assistant on the Pi: the tags and Siri trigger the same scripts the
+                    dashboards do, so there's one place where a light's state lives.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> My config isn't public since it describes my home network. Happy to talk
+                    through any part of it though.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>

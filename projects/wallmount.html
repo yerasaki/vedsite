@@ -1,0 +1,213 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>Tablet Wall Mount</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Tablet Wall Mount</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    My <a href="homeassistant.html">Home Assistant</a> kiosk is a Samsung Galaxy Tab A7 Lite on the wall
+                    next to my intercom. It sits in two 3D-printed rails I designed in OpenSCAD: the tablet drops in from
+                    the top and lifts straight out whenever I want to use its camera. No screws, no top clip, just
+                    adhesive tape.
+                </p>
+                <p>
+                    Then I stripped the tablet down to only what the kiosk needs, and set it up so every photo it takes
+                    lands on my homelab's <a href="homelab.html#storage">SSD</a> on its own.
+                </p>
+                <!-- MEDIA: photo: the tablet in the rails on the wall -->
+            </section>
+
+            <!-- the mount -->
+            <section>
+                <h2>the mount</h2>
+                <p>
+                    Two mirrored C-channel rails hold the tablet by its left and right edges in landscape. Each rail is a
+                    back plate that takes the tape, a short shelf the tablet stands on, and a lip that wraps over the
+                    front bezel. I used two corner rails instead of a full-width cradle so nothing clashes with the
+                    intercom beside it.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>fits by design</strong>: The tablet is 212.5 × 124.7 × 8.0 mm and 371 g. Each rail adds
+                        0.4 mm of slop so it slides in without scraping but doesn't rattle.
+                    </div>
+                    <div class="feature">
+                        <strong>easy to grab</strong>: The rails are 105 mm tall, shorter than the tablet, so the top edge
+                        sticks out and I can pull it straight up.
+                    </div>
+                    <div class="feature">
+                        <strong>room for the charger</strong>: The side wall stops at 46 mm, below the USB-C port, so the
+                        cable rides up and out with the tablet instead of catching. A slimmer bar continues above it.
+                    </div>
+                    <div class="feature">
+                        <strong>nothing covered</strong>: The front lip has a notch from 42 to 84 mm for the front camera
+                        and light sensor, which doubles as a finger grip. There's also a relief cut for the rear camera, in
+                        case the rails ever get taller.
+                    </div>
+                    <div class="feature">
+                        <strong>thicker for PLA</strong>: The lip and shelf started at 2.5 and 3.5 mm. I bumped them to 3.0
+                        and 4.0 mm before printing in PLA.
+                    </div>
+                </div>
+                <!-- MEDIA: render: both rails in OpenSCAD with the tablet shown -->
+                <p>
+                    The whole model is parametric: every dimension above is a variable, and one setting switches between
+                    printing both rails, just the left, or just the right, with an optional ghost of the tablet to check
+                    the fit. With those values, the tablet's face sits 11.6 mm off the wall, the rails are 213.3 mm apart
+                    on the inside, and each rail's footprint is about 25.5 × 109 mm.
+                </p>
+            </section>
+
+            <!-- printing and mounting -->
+            <section>
+                <h2>printing and mounting</h2>
+                <p>
+                    Printed on a Bambu Lab A1 in white matte PLA: 0.16 mm layers, 4 walls, 25% gyroid infill, supports
+                    on the build plate only. To mount it, I used the tablet as the jig: slide both rails onto it, put
+                    tape on their backs, press the whole thing against the wall, let the tape cure, then slide the tablet
+                    out. The rails end up exactly as far apart as they need to be.
+                </p>
+                <!-- MEDIA: photo: a printed rail up close -->
+            </section>
+
+            <!-- the tablet -->
+            <section>
+                <h2>debloating the tablet</h2>
+                <p>
+                    Out of the box the tablet came with a pile of Samsung and Google apps that a wall kiosk doesn't need.
+                    I removed them over ADB from my Mac, without rooting it:
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>first pass</strong>: Universal Android Debloater's "Recommended" list.
+                    </div>
+                    <div class="feature">
+                        <strong>second pass</strong>: Everything else I didn't need got
+                        <code>pm disable-user --user 0</code> first, so I could check nothing broke, then a
+                        <code>pm uninstall --user 0</code> sweep. That removes the app for the user without touching the
+                        system partition, so a factory reset would bring it all back.
+                    </div>
+                    <div class="feature">
+                        <strong>no Google</strong>: The Play Store, Play Services and Google Services Framework are all
+                        disabled.
+                    </div>
+                </div>
+                <p>
+                    <strong>What's left</strong>: four apps from F-Droid (Tailscale, the Fennec browser, the Home
+                    Assistant companion app and Termux), the stock Samsung camera, and the system pieces that Android
+                    needs to function: WebView (which the Home Assistant app renders in), the permission controller, the
+                    package installer, the network stack and the media provider. The OS is set up for the kiosk too:
+                    swipe gestures instead of a nav bar, no taskbar, and the smallest screen zoom, because the
+                    dashboard's grid needs every pixel.
+                </p>
+                <!-- MEDIA: screenshot: the tablet's app drawer after debloating -->
+            </section>
+
+            <!-- photo sync -->
+            <section>
+                <h2>photos straight to the NAS</h2>
+                <p>
+                    Since the tablet lifts out, it's also a camera. Termux runs <strong>rclone</strong> on a schedule
+                    and copies everything in the camera folder to a folder on my homelab's
+                    <a href="homelab.html#storage">SSD</a>, over SFTP inside my tailnet, so it works from anywhere and
+                    nothing is exposed publicly.
+                </p>
+                <div class="highlight-box">
+                    <p class="hint">
+                        it's rclone copy, not sync: the copy is add-only, so deleting a photo on
+                        the tablet never deletes it from the NAS. and since that folder is on the SSD, the nightly
+                        snapshots keep old versions too.
+                    </p>
+                </div>
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>OpenSCAD</span>
+                    <span>Bambu Lab A1</span>
+                    <span>PLA</span>
+                    <span>Galaxy Tab A7 Lite</span>
+                    <span>ADB</span>
+                    <span>Universal Android Debloater</span>
+                    <span>F-Droid</span>
+                    <span>Termux</span>
+                    <span>rclone</span>
+                    <span>SFTP</span>
+                    <span>Tailscale</span>
+                </div>
+            </section>
+
+            <!-- architecture -->
+            <section>
+                <h2>architecture</h2>
+                <div class="arch-row">
+                    <span class="node">tablet camera</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Termux + rclone</span>
+                    <span class="arrow">→</span>
+                    <span class="node">SFTP over Tailscale</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Pi SSD</span>
+                    <span class="arrow">→</span>
+                    <span class="node">nightly snapshot</span>
+                </div>
+                <p>
+                    The rails are two STL files exported from one parametric <code>.scad</code> file, plus a Bambu
+                    project file with the print settings.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> The model isn't on GitHub yet. If you have the same tablet and want the
+                    files, reach out.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>

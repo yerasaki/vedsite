@@ -49,8 +49,9 @@
                     <span>Node.js</span>
                     <span>Express.js</span>
                     <span>PostgreSQL</span>
-                    <span>AWS EC2</span>
-                    <span>Cloudflare</span>
+                    <span>Docker</span>
+                    <span>Raspberry Pi 5</span>
+                    <span>Cloudflare Tunnel</span>
                 </div>
                 <p>
                     My coach enforced my love for sports when he advised my parents to switch me to inline roller skates at 4.
@@ -58,7 +59,7 @@
                     and Hong Kong in 2016, where I ended up winning. The pandemic hindered skating practices, but helped me find Squash
                     in May 2024. Ever since, I've used it as a tool for mental and physical development, playing at least thrice a week.
                     When I tried out for the team at Northeastern in Fall 2024, my unrefined skills denied me the spot. I went back to the drawing
-                    board and finally made the team Spring 2025. Once Harrison Seeley (former Vice President) graduated this past December, I was honored
+                    board and finally made the team Spring 2025. Once Harrison Seeley (former Vice President) graduated in December 2025, I was honored
                     to assume the role in his stead, starting Spring 2026. Harrison's efforts contributed to the birth of <a href="https://neusquashhub.com">neusquashhub.com</a>,
                     but after taking over my efforts went into building the full-stack web app with live attendance service, cloud emails, announcements and
                     improving scheduling features.
@@ -72,7 +73,7 @@
                     <div class="feature">
                         <strong>role-based access</strong>: Guests and team members have read-only access to team info. 
                         Admin (E-Board) users can create, modify, and delete records through a dedicated portal. This includes
-                        all of the features just listed, restricted to just the execute board.
+                        all of the features just listed, restricted to just the executive board.
                     </div>
                     <div class="feature">
                         <strong>attendance tracking</strong>: A live check-in service lets players mark themselves 
@@ -99,7 +100,7 @@
             <section>
                 <h2>demonstration</h2>
                 
-                <p><strong>guest view</strong>: Guests have do not have any executive access, they have read-only access to team announcements, ladders, and schedules.</p>
+                <p><strong>guest view</strong>: Guests do not have any executive access, they have read-only access to team announcements, ladders, and schedules.</p>
                 <!-- PLACEHOLDER: squashhub_guest.mp4 -->
                 <video class="screenshot" autoplay loop muted playsinline controls>
                     <source src="../media/sq/sq_guest.mp4" type="video/mp4">
@@ -124,7 +125,7 @@
                     <source src="../media/sq/sq_events.mp4" type="video/mp4">
                 </video>
 
-                <p><strong>announcement & automatic emails</strong>: Each announcement triggers an automatic email to all players on the relevant team. Examples of emails sent  when an announcement is posted and when a new player is created:</p>
+                <p><strong>announcement & automatic emails</strong>: Each announcement triggers an automatic email to all players on the relevant team. Examples of emails sent when an announcement is posted and when a new player is created:</p>
                 <!-- PLACEHOLDER: squashhub_emails.png -->
                 <img class="screenshot" src="../media/sq/sq_email.png" alt="Email notification examples">
                 <img class="screenshot" src="../media/sq/sq_welcome.png" alt="Email notification examples">
@@ -148,15 +149,17 @@
                     Schema reaches the third normal form by separating inter-table many-to-many relationships into junction tables.
                     Additional table indexing except primary key is not needed (and won't be for the future, unless we get 150 users)
                     due to the simple schema and small amount of data size. <br>
-                    I chose to implement the Docker container and Flask API on AWS EC2 after learning it to take this website over.
-                    That's the one that runs the live updating <a href="https://vedsite.com/misc">misc page</a>, btw.
+                    It all runs in Docker on my <a href="homelab.html">Raspberry Pi 5 homelab</a>, next to the Flask API
+                    that runs the live updating <a href="https://vedsite.com/misc">misc page</a>, btw. Both used to live on
+                    an AWS EC2 instance.
                 </p>
 
                 <p>
-                    Everything: frontend, backend and database, runs on a single AWS EC2 VM. Not optimal but it is more than
-                    enough for what Club Squash currently needs. Cloudflare DNS is used to proxy incoming HTTPS requests
-                    and forwards them to the EC2 instance over HTTP. A custom reverse proxy server routes all the requests
-                    between frontend and backend on the same origin, to eliminate any chance of CORS issues.
+                    Everything: frontend, backend and database, runs as three containers on that one Pi. Not optimal but it
+                    is more than enough for what Club Squash currently needs. A Cloudflare Tunnel carries HTTPS traffic for
+                    neusquashhub.com to the Pi without opening any ports on my home network. An nginx container serves the
+                    React build and proxies <code>/api/</code> requests to the Express container on the same origin, to
+                    eliminate any chance of CORS issues.
                 </p>
 
                 <!-- PLACEHOLDER: squashhub_schema.png -->
@@ -191,7 +194,7 @@
                     data is <strong>never</strong> written to disk in plaintext. While the UI hides admin controls from non-admin users, 
                     it is still possible for someone to spoof requests with an admin username. To prevent this, all POST, PUT, PATCH, and 
                     DELETE requests require an authorization token. This token is randomly generated and sent to an admin 
-                    after successful password verification. The backend follows active tokens in a ring buffer, ensuring 
+                    after successful password verification. The backend tracks active tokens in a ring buffer, ensuring 
                     only recent tokens remain valid and old ones don't pile up or become a liability.
                 </p>
                 <p>

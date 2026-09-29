@@ -493,15 +493,17 @@ a:not(.nav-shape):not(.home-btn):not(.back-btn):not(.resume-btn) {
    ============================================================================= */
 
 body:has(#cards) {
-    overflow: hidden;
-    height: 100vh;
+    /* Scrolls once the grid is taller than the viewport (12 cards = 4 rows). */
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
     background-color: rebeccapurple;
 
     & .page-container {
         padding: 40px 60px;
         display: flex;
         flex-direction: column;
-        height: 100vh;
+        min-height: 100vh;
     }
 
     & .page-header {

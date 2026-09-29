@@ -114,6 +114,8 @@ if (cardsContainer) {
             : null;
 
         if (targetCard) {
+            // The grid scrolls now, so bring the card on screen before shrinking to it.
+            targetCard.scrollIntoView({ block: 'center', behavior: 'instant' });
             playRectShrinkOverlay(color, targetCard);
         } else {
             // Fallback to circle if card not found

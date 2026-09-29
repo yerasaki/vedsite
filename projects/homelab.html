@@ -1,0 +1,292 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>Pi 5 Homelab</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>Pi 5 Homelab</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    A Raspberry Pi 5 (8 GB) on my desk runs most of what I host. It's a NAS for movies, shows, music and
+                    school files, the backend for this website's <a href="../misc.html">misc page</a>, the production
+                    server for <a href="squashhub.html">NEU SquashHub</a>, the <a href="ssh.html">SSH portfolio</a>,
+                    and <a href="homeassistant.html">Home Assistant</a>. Everything except the OS lives on an external
+                    SSD, gets backed up to a second drive every night, and is reachable from my phone and laptop
+                    anywhere over Tailscale.
+                </p>
+                <p>
+                    The Flask API behind this site and SquashHub both used to run on an AWS EC2 instance. They moved here
+                    and the AWS setup is gone.
+                </p>
+                <!-- MEDIA: photo: the Pi + both drives on the desk -->
+            </section>
+
+            <!-- storage -->
+            <section id="storage">
+                <h2>storage</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>4 TB SSD</strong>: A SanDisk Extreme Pro holds everything: media, Home Assistant's config,
+                        the photos my wall tablet takes, and my own files. It's formatted ext4 with only 0.5% reserved
+                        space, since nothing on it needs root's emergency headroom.
+                    </div>
+                    <div class="feature">
+                        <strong>2 TB HDD</strong>: A Seagate Expansion drive that exists only to hold backups of the SSD.
+                    </div>
+                    <div class="feature">
+                        <strong>mounted by UUID</strong>: USB drive letters swap around after a replug, so both drives mount
+                        by filesystem UUID with <code>nofail</code> and a 10 second timeout. A missing drive can't stop the
+                        Pi from booting.
+                    </div>
+                    <div class="feature">
+                        <strong>why ext4, not btrfs</strong>: These are USB drives, and USB drives get knocked loose. ext4
+                        recovers cleanly from an ungraceful disconnect, it's mature on ARM, and I already get snapshots
+                        from the backup setup below. I'll revisit btrfs RAID1 if I ever buy a matching second disk.
+                    </div>
+                </div>
+                <p>
+                    That decision got tested once: a drive came unplugged mid-write. The recovery was
+                    <code>dmesg</code> and <code>journalctl</code> to confirm what happened, unmount, <code>fsck -f</code>,
+                    remount, restart the file server. No data lost.
+                </p>
+                <p>
+                    The Pi itself also got two stability fixes after an rsync crash: the USB ports are allowed their full
+                    current budget so two drives don't brown out, and the hardware watchdog is on, so a hard lockup
+                    reboots itself within two minutes instead of waiting for me to get home.
+                </p>
+            </section>
+
+            <!-- backups -->
+            <section>
+                <h2>backups</h2>
+                <p>
+                    <strong>rsnapshot</strong> copies the SSD to the HDD every night at 2 AM, then keeps 7 daily, 4 weekly
+                    and 6 monthly snapshots. Each snapshot looks like a full copy, but unchanged files are hard links to
+                    the previous one, so six months of history costs barely more than one copy.
+                </p>
+                <div class="highlight-box">
+                    <p class="hint">
+                        the setting i'd tell anyone to turn on: no_create_root. if the backup drive isn't
+                        mounted, rsnapshot refuses to run instead of happily writing a full backup onto the Pi's SD card
+                        and filling it.
+                    </p>
+                </div>
+                <p>
+                    One thing that confused me at first: <code>du</code> over-reports a single snapshot, because a
+                    hard-linked file gets counted against whichever snapshot <code>du</code> sees first.
+                    <code>df -h</code> tells the truth.
+                </p>
+            </section>
+
+            <!-- services -->
+            <section>
+                <h2>services</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>copyparty</strong>: The file server. It serves the SSD over the web and WebDAV, so the
+                        same files open in a browser, in Finder, and in nPlayer on my iPhone. I picked it over Nextcloud
+                        because it's far lighter on a Pi and I didn't need Nextcloud's photo sync; iCloud already does
+                        that.
+                    </div>
+                    <div class="feature">
+                        <strong>vedsite API</strong>: A Flask app that talks to Spotify, Last.fm and Letterboxd for the
+                        misc page, published at <code>api.vedsite.com</code> through a Cloudflare Tunnel. No open ports
+                        on my router.
+                    </div>
+                    <div class="feature">
+                        <strong>SquashHub</strong>: The club's React + Express + PostgreSQL stack, three containers,
+                        published at <code>neusquashhub.com</code> through the same tunnel.
+                    </div>
+                    <div class="feature">
+                        <strong>SSH portfolio</strong>: The Go binary behind <code>ssh portfolio.vedsite.com</code>,
+                        reached through a small Oracle Cloud relay.
+                    </div>
+                    <div class="feature">
+                        <strong>Home Assistant</strong>: In Docker on the host network, with its config on the SSD so it's
+                        in the nightly backup like everything else. It has its <a href="homeassistant.html">own page</a>.
+                    </div>
+                    <div class="feature">
+                        <strong>Tailscale</strong>: Every device I own is on one tailnet, which is how I reach the Pi from
+                        anywhere without exposing it. The Pi is also an exit node, so on public Wi-Fi my phone can route
+                        through home.
+                    </div>
+                </div>
+            </section>
+
+            <!-- how i use it -->
+            <section>
+                <h2>how i use it: piplay</h2>
+                <p>
+                    Most of the time the NAS is a movie library. Browsers can't play most of the audio tracks in my MKV
+                    files (DTS-HD, TrueHD, AC3), and the file server hands the raw file to the browser without
+                    transcoding. So I wrote <code>piplay</code>, a shell function on my Mac that streams any file or
+                    folder straight into mpv.
+                </p>
+                <div class="highlight-box">
+                    <div class="ssh-command">
+                        <code>piplay "movies/Paris, Texas (1984)"</code>
+                    </div>
+                    <p class="hint">give it a folder and it plays the biggest video inside, which is almost always the
+                        film and not the sample or the extras.</p>
+                </div>
+                <div class="features">
+                    <div class="feature">
+                        <strong>paths survive the trip</strong>: Film folders are full of spaces, parentheses and
+                        apostrophes, which break a remote shell command. The path is base64-encoded on the Mac and
+                        decoded on the Pi, so nothing needs escaping.
+                    </div>
+                    <div class="feature">
+                        <strong>the Pi does the searching</strong>: Over SSH, the Pi lists the folder's videos by size
+                        and sends back the largest one. If there's nothing playable it says so before mpv ever opens.
+                    </div>
+                    <div class="feature">
+                        <strong>mpv streams it</strong>: The Mac URL-encodes the path and opens it in mpv over HTTP.
+                        Range requests make seeking instant, and mpv remembers where I stopped, so
+                        <code>Shift+Q</code> and coming back tomorrow picks up at the same frame.
+                    </div>
+                </div>
+                <!-- MEDIA: recording: piplay in the terminal → mpv opening a film -->
+            </section>
+
+            <!-- monitoring -->
+            <section>
+                <h2>monitoring</h2>
+                <p>
+                    The first thing on my wall tablet's dashboard is a live panel for the Pi: CPU, memory,
+                    both drives and every container. It's built on <strong>Beszel</strong>, but the panel itself is
+                    mine.
+                </p>
+                <div class="arch-row">
+                    <span class="node">Beszel agent (Pi)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Beszel hub (Oracle)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Flask route</span>
+                    <span class="arrow">→</span>
+                    <span class="node">static panel in Home Assistant</span>
+                </div>
+                <p>
+                    The agent on the Pi reads system stats and the Docker socket. The hub runs on my Oracle Cloud VM, not
+                    the Pi, so if the Pi goes down the thing watching it doesn't go down with it. A private route in the
+                    same Flask API logs into the hub as a read-only user and flattens the latest sample into one small
+                    JSON response, and a plain HTML/CSS/JS page inside Home Assistant renders it. Beszel only shows
+                    drives you declare explicitly, so both mounts are listed by hand.
+                </p>
+                <div class="features">
+                    <div class="feature">
+                        <strong>failures are loud</strong>: Each fetch has an 8 second timeout, and a timeout turns the
+                        panel red instead of quietly showing stale numbers in grey.
+                    </div>
+                    <div class="feature">
+                        <strong>three caches</strong>: Every change to the panel's CSS or JS needs a version bump in two
+                        places, because the tablet's browser, the Home Assistant app and the dashboard's iframe each cache
+                        it separately. I learned that one the slow way.
+                    </div>
+                </div>
+                <!-- MEDIA: screenshot: the homelab panel on its own -->
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>Raspberry Pi 5</span>
+                    <span>Raspberry Pi OS</span>
+                    <span>Docker Compose</span>
+                    <span>ext4</span>
+                    <span>rsnapshot</span>
+                    <span>copyparty</span>
+                    <span>Tailscale</span>
+                    <span>Cloudflare Tunnel</span>
+                    <span>nginx</span>
+                    <span>Flask</span>
+                    <span>Beszel</span>
+                    <span>Oracle Cloud</span>
+                    <span>mpv</span>
+                </div>
+                <p>
+                    Each service is its own Docker Compose project, and bind mounts always point at the parent directory
+                    rather than a single file, because anything that writes atomically (write a temp file, then rename
+                    it over the old one) breaks a single-file mount. Logs persist across reboots, capped at 500 MB.
+                </p>
+            </section>
+
+            <!-- architecture -->
+            <section>
+                <h2>architecture</h2>
+                <div class="arch-row">
+                    <span class="node">internet</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Cloudflare Tunnel</span>
+                    <span class="arrow">→</span>
+                    <span class="node">nginx</span>
+                    <span class="arrow">→</span>
+                    <span class="node">vedsite API / SquashHub</span>
+                </div>
+                <div class="arch-row">
+                    <span class="node">my devices</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Tailscale</span>
+                    <span class="arrow">→</span>
+                    <span class="node">copyparty / Home Assistant</span>
+                    <span class="arrow">→</span>
+                    <span class="node">4 TB SSD</span>
+                    <span class="arrow">→</span>
+                    <span class="node">nightly rsnapshot → 2 TB HDD</span>
+                </div>
+                <p>
+                    Public traffic only ever reaches the two things meant to be public, through Cloudflare. Everything
+                    else is private to my tailnet.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> This one is mostly configuration rather than code, so there's no repo. The
+                    API it runs is what powers my <a href="../misc.html">misc page</a>.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>
