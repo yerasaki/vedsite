@@ -97,6 +97,25 @@
             </div>
         </div>
 
+        <!-- Search: all-time Last.fm scrobbles / Letterboxd diary -->
+        <div class="page-content search-row">
+            <section class="search-section">
+                <h2>have i heard it</h2>
+                <input class="search-input" id="song-search" type="text" placeholder="search a song or artist"
+                    autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
+                    aria-label="search my Last.fm scrobbles">
+                <div class="search-results" id="song-results" aria-live="polite"></div>
+            </section>
+
+            <section class="search-section">
+                <h2>have i seen it</h2>
+                <input class="search-input" id="film-search" type="text" placeholder="search a film"
+                    autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
+                    aria-label="search my Letterboxd diary">
+                <div class="search-results" id="film-results" aria-live="polite"></div>
+            </section>
+        </div>
+
         <footer class="social-links">
             <a href="https://letterboxd.com/yerasaki" target="_blank">
                 <img src="icons/letterboxd.svg" alt="Letterboxd">

@@ -101,10 +101,6 @@ a, button, .film-card, .top4-card, .artist-card {
     gap: 20px;
     flex: 1;
     min-height: 600px;
-    /* Clearance for the fixed .social-links pill (bottom:16px + ~46px tall).
-       Lives on this in-flow child rather than .page-container's padding-bottom,
-       which WebKit/Blink drop from a scroll container's scrollable area. */
-    padding-bottom: 90px;
     box-sizing: border-box;
 }
 
@@ -365,6 +361,174 @@ a, button, .film-card, .top4-card, .artist-card {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* =============================================================================
+   SEARCH - have i heard it / have i seen it
+   ============================================================================= */
+
+/* Sits under the dashboard with the same two-column split, so the columns
+   above keep their proportions. */
+.search-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+    /* Clearance for the fixed .social-links pill (bottom:16px + ~46px tall).
+       Lives on this in-flow child (the last one before the footer) rather than
+       .page-container's padding-bottom, which WebKit/Blink drop from a scroll
+       container's scrollable area. */
+    padding-bottom: 90px;
+    box-sizing: border-box;
+}
+
+.search-section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Same pill as the home button. */
+.search-input {
+    width: 100%;
+    font-family: 'sfpro_d', 'Times New Roman', Times, serif;
+    font-size: 16px;
+    color: #ffffff;
+    background: none;
+    border: 2px solid #ffffff;
+    border-radius: 30px;
+    padding: 8px 18px;
+    outline: none;
+    cursor: none;
+    transition: background 300ms ease;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.search-results:empty {
+    display: none;
+}
+
+.search-results .muted-note {
+    font-size: 14px;
+    margin: 0;
+    padding: 0 18px;
+}
+
+/* Rows reuse the queue-item look. */
+.search-item {
+    display: block;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    outline: none;
+    padding: 8px 12px;
+    cursor: none;
+    transition: background 200ms ease;
+}
+
+/* Film rows are links: beat shared.css's a:not(...) { color: #000 }. */
+#film-results .search-item {
+    color: #ffffff;
+}
+
+.search-item:hover,
+.search-item:focus-visible,
+.search-item.open {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.search-item-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+}
+
+.search-item-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-item-sub {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.search-item-count {
+    flex-shrink: 0;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.search-item-rating {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #ffcc00;
+}
+
+.search-detail {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.search-detail img {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.search-facts {
+    font-size: 13px;
+    line-height: 1.5;
+    min-width: 0;
+}
+
+.search-facts span {
+    opacity: 0.7;
+}
+
+.search-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.search-tags span {
+    font-size: 11px;
+    line-height: 1;
+    padding: 4px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 30px;
+}
+
+@media (max-width: 900px) {
+    .search-row {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        margin-top: 30px;
+    }
 }
 
 /* =============================================================================

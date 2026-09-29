@@ -7,3 +7,7 @@ __pycache__/
 token.rtf
 spotify_tokens.json
 CLAUDE.md
+# API lives on the Pi (~/vedsite/stats); the portfolio binary is its own repo.
+# Pages serves everything in this repo, so neither belongs here.
+stats/
+main.go

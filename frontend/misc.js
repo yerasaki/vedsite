@@ -361,6 +361,200 @@ async function fetchTop4() {
     }
 }
 
+// =============================================================================
+// SEARCH - have i heard it (Last.fm) / have i seen it (Letterboxd)
+// =============================================================================
+
+const SEARCH_DEBOUNCE_MS = 250;
+
+// Letterboxd dates are YYYY-MM-DD: parse as a local date so they don't shift a
+// day west of UTC. Last.fm dates are unix seconds.
+function toDate(value) {
+    if (typeof value === 'number') return new Date(value * 1000);
+    const [y, m, d] = value.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+function formatDate(value) {
+    const d = toDate(value);
+    return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function timeAgo(value) {
+    const then = toDate(value);
+    const now = new Date();
+    const days = Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) -
+        new Date(then.getFullYear(), then.getMonth(), then.getDate())) / 86400000);
+    const plural = (n, unit) => `${n} ${unit}${n === 1 ? '' : 's'} ago`;
+    if (days <= 0) return 'today';
+    if (days === 1) return 'yesterday';
+    if (days < 7) return plural(days, 'day');
+    if (days < 30) return plural(Math.floor(days / 7), 'week');
+    if (days < 365) return plural(Math.floor(days / 30), 'month');
+    return plural(Math.floor(days / 365), 'year');
+}
+
+function times(n) {
+    return n === 1 ? 'once' : n === 2 ? 'twice' : `${n} times`;
+}
+
+// Debounced input → fetch → render, ignoring responses that arrive after a newer query.
+function wireSearch(inputId, resultsId, run) {
+    const input = document.getElementById(inputId);
+    const results = document.getElementById(resultsId);
+    let timer = null;
+    let seq = 0;
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+        if (q.length < 2) {
+            seq++;
+            results.innerHTML = '';
+            return;
+        }
+        timer = setTimeout(async () => {
+            const mine = ++seq;
+            const html = await run(q, results);
+            if (mine === seq && html !== null) results.innerHTML = html;
+        }, SEARCH_DEBOUNCE_MS);
+    });
+
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            input.value = '';
+            seq++;
+            results.innerHTML = '';
+        }
+    });
+}
+
+// SONGS
+
+async function searchSongs(q) {
+    try {
+        const res = await fetch(`${API_BASE}/lastfm/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.indexing) return '<p class="muted-note">still indexing my library, try again in a minute</p>';
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!data.songs.length) return '<p class="muted-note">not in my scrobbles</p>';
+
+        return data.songs.map(song => `
+            <div class="search-item song-item" role="button" tabindex="0" aria-expanded="false"
+                data-artist="${esc(song.artist)}" data-track="${esc(song.track)}">
+                <div class="search-item-head">
+                    <div class="search-item-title">${esc(song.track)}</div>
+                    <div class="search-item-count">${esc(song.plays)} play${song.plays === 1 ? '' : 's'}</div>
+                </div>
+                <div class="search-item-sub">${esc(song.artist)}</div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Error searching songs:', err);
+        return '<p class="muted-note">search unavailable</p>';
+    }
+}
+
+async function openSong(item) {
+    const container = document.getElementById('song-results');
+    const wasOpen = item.classList.contains('open');
+    container.querySelectorAll('.song-item.open').forEach(el => {
+        el.classList.remove('open');
+        el.setAttribute('aria-expanded', 'false');
+        el.querySelector('.search-detail')?.remove();
+    });
+    if (wasOpen) return;
+
+    item.classList.add('open');
+    item.setAttribute('aria-expanded', 'true');
+    const detail = document.createElement('div');
+    detail.className = 'search-detail';
+    detail.innerHTML = '<div class="search-facts"><span>loading…</span></div>';
+    item.appendChild(detail);
+
+    try {
+        const params = new URLSearchParams({ artist: item.dataset.artist, track: item.dataset.track });
+        const song = await getJSON(`/lastfm/track?${params}`);
+        if (!item.contains(detail)) return; // closed while loading
+
+        const facts = [`played ${times(song.plays)}`];
+        if (song.last_played) {
+            facts.push(`last played ${formatDate(song.last_played)} <span>· ${timeAgo(song.last_played)}</span>`);
+        }
+        if (song.first_played && song.first_played !== song.last_played) {
+            facts.push(`first played ${formatDate(song.first_played)} <span>· ${timeAgo(song.first_played)}</span>`);
+        }
+        detail.innerHTML = `
+            ${song.album_image ? `<img src="${esc(song.album_image)}" alt="${esc(song.track)} album art">` : ''}
+            <div class="search-facts">${facts.map(f => `<div>${f}</div>`).join('')}</div>
+        `;
+    } catch (err) {
+        console.error('Error loading song:', err);
+        if (item.contains(detail)) detail.innerHTML = '<div class="search-facts"><span>dates unavailable</span></div>';
+    }
+}
+
+// FILMS
+
+async function searchFilms(q) {
+    try {
+        const data = await getJSON(`/letterboxd/search?q=${encodeURIComponent(q)}`);
+        if (!data.films.length) return '<p class="muted-note">not in my diary</p>';
+
+        return data.films.map(film => {
+            const facts = [];
+            if (film.last_watched) {
+                // A first logged watch marked "rewatch" means the original viewing
+                // was never logged, so it counts on top of the logged ones.
+                const watched = Math.max(film.times_watched, film.rewatches + 1);
+                const rewatches = film.rewatches ? ` <span>· ${film.rewatches} rewatch${film.rewatches === 1 ? '' : 'es'}</span>` : '';
+                facts.push(`watched ${times(watched)}${rewatches}`);
+                facts.push(`last watched ${formatDate(film.last_watched)} <span>· ${timeAgo(film.last_watched)}</span>`);
+                if (film.first_watched !== film.last_watched) {
+                    facts.push(`first watched ${formatDate(film.first_watched)} <span>· ${timeAgo(film.first_watched)}</span>`);
+                }
+            } else {
+                facts.push('watched <span>· no date logged</span>');
+            }
+            const tags = film.tags.length
+                ? `<div class="search-tags">${film.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>`
+                : '';
+            return `
+                <a class="search-item card-link" href="${esc(film.url)}" target="_blank">
+                    <div class="search-item-head">
+                        <div class="search-item-title">${esc(film.title)}${film.year ? ` <span class="search-item-sub">${esc(film.year)}</span>` : ''}</div>
+                        ${film.rating ? `<div class="search-item-rating">${ratingToStars(film.rating)}</div>` : ''}
+                    </div>
+                    <div class="search-facts">${facts.map(f => `<div>${f}</div>`).join('')}</div>
+                    ${tags}
+                </a>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('Error searching films:', err);
+        return '<p class="muted-note">search unavailable</p>';
+    }
+}
+
+function initSearch() {
+    wireSearch('song-search', 'song-results', searchSongs);
+    wireSearch('film-search', 'film-results', searchFilms);
+    const songResults = document.getElementById('song-results');
+    songResults.addEventListener('click', e => {
+        const item = e.target.closest('.song-item');
+        if (item) openSong(item);
+    });
+    songResults.addEventListener('keydown', e => {
+        const item = e.target.closest('.song-item');
+        if (item && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            openSong(item);
+        }
+    });
+}
+
 // INITIALIZE
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -368,4 +562,5 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchRecentFilms();
     fetchTop4();
     startPolling();
+    initSearch();
 });

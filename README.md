@@ -30,6 +30,7 @@ vedsite/
 │   │   └── subprojects.js
 │   ├── experience.css
 │   ├── misc.css
+│   ├── misc.js
 │   └── shared.css
 ├── icons/
 │   ├── favicon/
@@ -46,7 +47,6 @@ vedsite/
 │   ├── linkedin.svg
 │   ├── serializd.svg
 │   ├── spotify.svg
-│   ├── strava.svg
 │   └── web.svg
 ├── media/
 │   ├── about/
@@ -91,12 +91,6 @@ vedsite/
 │   ├── sanguine.html
 │   ├── squashhub.html
 │   └── ssh.html
-├── stats/
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   ├── requirements.txt
-│   ├── server.py
-│   └── top4.json
 ├── .gitignore
 ├── LICENSE
 ├── README.md
@@ -104,7 +98,6 @@ vedsite/
 ├── about.html
 ├── experience.html
 ├── index.html
-├── main.go
 ├── manifest.json
 ├── misc.html
 ├── projects.html
