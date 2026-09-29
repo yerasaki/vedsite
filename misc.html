@@ -39,6 +39,19 @@
         <div class="page-content two-column-layout">
             <!-- Left Column -->
             <div class="column left-column">
+                <!-- Search: all-time Last.fm scrobbles -->
+                <section class="search-section">
+                    <div class="search-bar">
+                        <h2>have i heard it?</h2>
+                        <div class="search-field">
+                            <input class="search-input" id="song-search" type="text" placeholder="search a song or artist"
+                                autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
+                                aria-label="search my Last.fm scrobbles" aria-controls="song-results">
+                            <div class="search-results" id="song-results" aria-live="polite"></div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Top Artists This Month -->
                 <section>
                     <h2>top artists this month</h2>
@@ -79,6 +92,19 @@
 
             <!-- Right Column -->
             <div class="column right-column">
+                <!-- Search: Letterboxd diary -->
+                <section class="search-section">
+                    <div class="search-bar">
+                        <h2>have i seen it?</h2>
+                        <div class="search-field">
+                            <input class="search-input" id="film-search" type="text" placeholder="search a film"
+                                autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
+                                aria-label="search my Letterboxd diary" aria-controls="film-results">
+                            <div class="search-results" id="film-results" aria-live="polite"></div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Top 4 Films -->
                 <section>
                     <h2>top 4</h2>
@@ -95,25 +121,6 @@
                     </div>
                 </section>
             </div>
-        </div>
-
-        <!-- Search: all-time Last.fm scrobbles / Letterboxd diary -->
-        <div class="page-content search-row">
-            <section class="search-section">
-                <h2>have i heard it</h2>
-                <input class="search-input" id="song-search" type="text" placeholder="search a song or artist"
-                    autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
-                    aria-label="search my Last.fm scrobbles">
-                <div class="search-results" id="song-results" aria-live="polite"></div>
-            </section>
-
-            <section class="search-section">
-                <h2>have i seen it</h2>
-                <input class="search-input" id="film-search" type="text" placeholder="search a film"
-                    autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
-                    aria-label="search my Letterboxd diary">
-                <div class="search-results" id="film-results" aria-live="polite"></div>
-            </section>
         </div>
 
         <footer class="social-links">

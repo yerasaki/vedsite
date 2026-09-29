@@ -418,7 +418,10 @@ function wireSearch(inputId, resultsId, run) {
         timer = setTimeout(async () => {
             const mine = ++seq;
             const html = await run(q, results);
-            if (mine === seq && html !== null) results.innerHTML = html;
+            if (mine === seq && html !== null) {
+                results.innerHTML = html;
+                results.hidden = false;
+            }
         }, SEARCH_DEBOUNCE_MS);
     });
 
@@ -427,7 +430,15 @@ function wireSearch(inputId, resultsId, run) {
             input.value = '';
             seq++;
             results.innerHTML = '';
+            input.blur();
         }
+    });
+
+    // The results float over the dashboard: tuck them away on any click
+    // outside the search, and bring them back when the input is focused again.
+    input.addEventListener('focus', () => { results.hidden = false; });
+    document.addEventListener('pointerdown', e => {
+        if (!input.parentElement.contains(e.target)) results.hidden = true;
     });
 }
 
