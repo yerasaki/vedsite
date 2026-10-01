@@ -1,0 +1,191 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>stopeating.pizza</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>stopeating.pizza</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- try it -->
+            <section>
+                <h2>try it</h2>
+                <div class="highlight-box">
+                    <div class="ssh-command">
+                        <code><a href="https://stopeating.pizza">stopeating.pizza</a></code>
+                    </div>
+                    <p class="hint">drop in a photo of a grocery receipt (or a screenshot of an online order) and it
+                        grades your cart. no account needed to poke at the sample. yes, the name is a little
+                        judgmental. that's the point.
+                    </p>
+                </div>
+            </section>
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    stopeating.pizza reads a photo of your grocery receipt, or a screenshot of an online grocery order,
+                    and hands you back a health report. It pulls out every line item, matches each one to real
+                    nutrition data, and scores it. You get an A to E grade on every item (the same system the food
+                    labels use across Europe), one overall score for the whole cart, the actual numbers behind every
+                    flag, and one better thing to reach for next time. The whole thing is built around improvement
+                    instead of shame. I wanted it to read like a friend who happens to know nutrition looking over your
+                    cart, not a calorie counter yelling at you.
+                </p>
+                <img class="screenshot" src="../media/stopeating/report.png" alt="stopeating.pizza report view">
+            </section>
+
+            <!-- the report -->
+            <section>
+                <h2>the report</h2>
+
+                <div class="features">
+                    <div class="feature">
+                        <strong>a grade on every item</strong>: each item gets an A to E letter grade based on the
+                        official French Nutri-Score. The card is bordered in its grade color, green through red, and you
+                        tap it open to see the real per-serving numbers, the source behind each flag, and one specific
+                        swap worth making.
+                    </div>
+                    <div class="feature">
+                        <strong>a cart score</strong>: one number out of ten for the whole cart, weighted by how much of
+                        each food you actually buy, not by how many items landed in the basket. A bag of spinach and a
+                        bag of candy do not count the same.
+                    </div>
+                    <div class="feature">
+                        <strong>it shows its work</strong>: every flag points at the body that sets the limit (the WHO,
+                        the FDA, and friends), and it never guesses. If it cannot confidently identify a product, it
+                        leaves it out of the score and tells you, rather than making a number up.
+                    </div>
+                    <div class="feature">
+                        <strong>recall guardian</strong>: every upload is checked against active FDA and USDA food
+                        recalls, so if something in your cart got pulled, it shows up as a warning on the report.
+                    </div>
+                    <div class="feature">
+                        <strong>your next cart</strong>: the report doubles as next week's shopping list. Keep the
+                        winners, swap the rest, copy the list.
+                    </div>
+                    <div class="feature">
+                        <strong>reproducible forever</strong>: every report is stamped with the exact engine and rubric
+                        versions that produced it, so the same receipt reproduces the same report even after the scoring
+                        rules change.
+                    </div>
+                </div>
+
+                <img class="screenshot" src="../media/stopeating/item_open.png" alt="stopeating.pizza expanded item card">
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>TypeScript</span>
+                    <span>Next.js</span>
+                    <span>pnpm monorepo</span>
+                    <span>Supabase</span>
+                    <span>PostgreSQL</span>
+                    <span>Anthropic API</span>
+                    <span>Tesseract OCR</span>
+                    <span>USDA FDC</span>
+                    <span>Open Food Facts</span>
+                    <span>Vitest</span>
+                    <span>Vercel</span>
+                </div>
+
+                <p>
+                    The scoring engine is a standalone <strong>TypeScript</strong> library. It knows nothing about the
+                    web, the database, or who you are: food items go in, scored records come out, and everything it
+                    needs (the nutrition databases, the OCR, the vision model) is handed to it as an injected interface.
+                    A hard rule keeps cached <strong>facts</strong> (nutrients, ingredients) separate from recomputed
+                    <strong>judgments</strong> (grades, scores, flags), which is what lets every report stay versioned
+                    and reproducible.
+                </p>
+
+                <p>
+                    Reading a receipt is cost-aware. Free on-device OCR (<strong>Tesseract</strong>) runs first, and it
+                    only pays for a vision model when the OCR is not confident enough. Nutrition facts come from
+                    <strong>USDA FoodData Central</strong> and <strong>Open Food Facts</strong>, and each product is
+                    resolved once and cached, so the second time anyone buys it the lookup is free.
+                </p>
+
+                <p>
+                    The grade uses the official French Nutri-Score algorithm (the 2023 version). I did not want to just
+                    claim it was right, so I wrote a test that runs my grader against Open Food Facts' own published
+                    grades: it matches on <strong>100% of 728 real products</strong>, and it stays in the suite as a
+                    permanent regression test. Building it caught several real bugs in my scoring tables, which was
+                    exactly the point.
+                </p>
+            </section>
+
+            <!-- ARCHITECTURE -->
+            <section>
+                <h2>architecture</h2>
+
+                <div class="arch-row">
+                    <span class="node">receipt photo</span>
+                    <span class="arrow">→</span>
+                    <span class="node">OCR / vision read</span>
+                    <span class="arrow">→</span>
+                    <span class="node">resolver (USDA + OFF, cached)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">scoring engine</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Next.js report</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Supabase (Postgres + RLS)</span>
+                </div>
+
+                <p>
+                    The web app is <strong>Next.js</strong> on Vercel. <strong>Supabase</strong> handles auth, Postgres,
+                    and file storage, with row-level security so one person can never open another person's report. The
+                    engine lives as its own package in a <strong>pnpm</strong> monorepo, covered by around 120 tests
+                    written test-first, so a change to the scoring rules cannot quietly break a grade.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> It lives in a private repo, since this one is a collaboration. The rest of
+                    my work is on my <a href="https://github.com/deshpande-ved">GitHub</a>.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>
