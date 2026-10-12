@@ -618,6 +618,20 @@ body.detail-page {
     display: block;
 }
 
+/* Portrait phone captures: phone-sized and side by side, stacked when narrow */
+.screenshot-pair {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin: 1rem 0;
+}
+
+.screenshot-pair .screenshot {
+    width: min(100%, 300px);
+    margin: 0;
+}
+
 /* Screenshot placeholders (remove once real images added) */
 .screenshot-placeholder {
     width: 100%;

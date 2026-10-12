@@ -159,7 +159,9 @@
                     sensor polls the status every 10 seconds. A template switch reads that sensor for its on/off state
                     and calls the commands when flipped, which is why the switch can lag reality by up to 10 seconds.
                     The camera itself is Home Assistant's MJPEG IP Camera integration pointed at the stream and snapshot
-                    endpoints. The Generic Camera integration rejected this source.
+                    endpoints. The Generic Camera integration rejected this source. The HomeKit Bridge then passes the switch and the
+                    camera through to Apple's Home app, where the feed shows up as a live HomeKit camera
+                    (<a href="homeassistant.html#apple-home">see it here</a>).
                 </p>
             </section>
 

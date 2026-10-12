@@ -67,8 +67,9 @@
                         lights still work.
                     </div>
                     <div class="feature">
-                        <strong>Siri</strong>: The HomeKit Bridge integration exposes the lights to Apple Home, so
-                        "hey Siri, lights off" and the Control Center tiles work too.
+                        <strong>Apple Home and Siri</strong>: The HomeKit Bridge integration puts the lamps, the CCTV
+                        switch and the camera itself into Apple's Home app, so "hey Siri, lights off" and the Control
+                        Center tiles work too. More on that <a href="#apple-home">below</a>.
                     </div>
                     <div class="feature">
                         <strong>presence and movement</strong>: The Home Assistant iPhone app reports my location, which
@@ -87,6 +88,24 @@
                     </div>
                 </div>
                 <!-- MEDIA: video: tapping the phone on an NFC tag, lamps switching -->
+            </section>
+
+            <!-- apple home -->
+            <section id="apple-home">
+                <h2>apple home</h2>
+                <p>
+                    Everything also shows up in Apple's Home app through the HomeKit Bridge integration: both lamps,
+                    the CCTV switch, and the MacBook camera as a HomeKit camera. While CCTV is off the camera tile
+                    reads No Response. Flip the switch from the Home app and the feed appears a moment later, and
+                    tapping it opens a live view. Home Assistant is still the one doing the work; the Home app is just
+                    another remote for it.
+                </p>
+                <div class="screenshot-pair">
+                    <img class="screenshot" src="../media/homeassistant/apple_home.png" alt="Apple Home on the iPhone: the live CCTV camera and the bedroom tiles for CCTV, the desk lamp and the floor lamp">
+                    <video class="screenshot" autoplay loop muted playsinline>
+                        <source src="../media/homeassistant/apple_home.mp4" type="video/mp4">
+                    </video>
+                </div>
             </section>
 
             <!-- the kiosk -->
@@ -126,7 +145,9 @@
                     The raw YAML editor also kept mangling the CSS selectors I use for styling, so I edit this
                     dashboard's stored JSON directly, with Home Assistant stopped, using a short Python script.
                 </p>
-                <img class="screenshot" src="../media/homeassistant/phone.png" alt="The single-column phone dashboard with the lights, map, homelab panel and live CCTV feed">
+                <div class="screenshot-pair">
+                    <img class="screenshot" src="../media/homeassistant/phone.png" alt="The single-column phone dashboard with the lights, map, homelab panel and live CCTV feed">
+                </div>
             </section>
 
             <!-- location fix -->
