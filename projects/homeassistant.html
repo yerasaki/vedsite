@@ -50,7 +50,7 @@
                     ways: a Galaxy tablet mounted on the wall as a kiosk, a phone dashboard, and without looking at a
                     screen at all, through NFC tags and Siri.
                 </p>
-                <!-- MEDIA: photo: the kiosk on the wall, dashboard visible -->
+                <img class="screenshot" src="../media/homeassistant/wall.jpg" alt="The Home Assistant kiosk tablet mounted on the wall above the intercom">
             </section>
 
             <!-- features -->
@@ -95,8 +95,9 @@
                 <p>
                     The wall tablet runs one dashboard, laid out on a roughly 42-column grid (layout-card's grid layout,
                     not the default Sections view, which can't place cards this precisely). The live panel for the
-                    homelab takes the left third, the camera and Spotify sit in the middle, the weather takes the right,
-                    and the lights run along the bottom: desk, floor, then both.
+                    homelab sits top left, the movement map runs down the middle and the weather takes the right.
+                    Underneath, the camera switch and Spotify are on the left and the lights on the right: desk, floor,
+                    then both.
                 </p>
                 <p>
                     kiosk-mode hides Home Assistant's header and sidebar, but only for the tablet. The tablet signs in as
@@ -104,7 +105,7 @@
                     interface everywhere else. I couldn't do it with a URL flag: the Home Assistant Android app ignores
                     URL paths and always opens the signed-in user's default dashboard.
                 </p>
-                <!-- MEDIA: screenshot: the full kiosk dashboard -->
+                <img class="screenshot" src="../media/homeassistant/kiosk.png" alt="The kiosk dashboard: homelab panel, movement map, weather, CCTV, Spotify and the lights">
                 <p>
                     The tablet itself, and the 3D-printed mount that holds it, are on the
                     <a href="wallmount.html">wall mount page</a>.
@@ -125,7 +126,7 @@
                     The raw YAML editor also kept mangling the CSS selectors I use for styling, so I edit this
                     dashboard's stored JSON directly, with Home Assistant stopped, using a short Python script.
                 </p>
-                <!-- MEDIA: screenshot: the phone dashboard -->
+                <img class="screenshot" src="../media/homeassistant/phone.png" alt="The single-column phone dashboard with the lights, map, homelab panel and live CCTV feed">
             </section>
 
             <!-- location fix -->

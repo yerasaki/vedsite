@@ -54,7 +54,9 @@
                     over my home network. Home Assistant never touches the camera. It flips a switch, the switch sends an
                     HTTP request, and the server on the Mac starts or stops the capture.
                 </p>
-                <!-- MEDIA: recording: flipping the CCTV switch on the kiosk, feed appearing -->
+                <video class="screenshot" autoplay loop muted playsinline>
+                    <source src="../media/cctv/demo.mp4" type="video/mp4">
+                </video>
             </section>
 
             <!-- two processes -->
@@ -116,6 +118,7 @@
                         <code>GET</code>s. Without a handler that probe got a 404.
                     </div>
                 </div>
+                <img class="screenshot" src="../media/cctv/feed.png" alt="The CCTV switch on and the live MJPEG feed from the MacBook camera in Home Assistant">
             </section>
 
             <!-- the nv12 story -->
