@@ -28,8 +28,9 @@ const getShapeSize = () => {
     return Math.min(225, Math.max(120, vwSize));
 }
 
-// Border-radius options for morphing on edge collision (px; the shapes start at 6rem)
-const roundnessOptions = [0, 10, 20, 40, 60];
+// Border-radius options for morphing on edge collision (px; the shapes start at 6rem).
+// 'circle' is half the current shape size, so it's a full circle at any size.
+const roundnessOptions = [0, 10, 20, 40, 60, 'circle'];
 const START_RADIUS = 96;
 
 // DVD-style bouncing physics. Units are px and seconds, so the speed is the
@@ -92,7 +93,8 @@ shapes.forEach((shape, index) => {
 function impact(data, axis, tangentialVelocity) {
     // Morph the corners, as before
     const roundnessIndex = uniqueRand(0, roundnessOptions.length - 1, data.prevRoundness);
-    data.radius = roundnessOptions[roundnessIndex];
+    const option = roundnessOptions[roundnessIndex];
+    data.radius = option === 'circle' ? getShapeSize() / 2 : option;
     data.prevRoundness = roundnessIndex;
 
     // A glancing hit drags the spin the way wall friction would (CSS rotation is
