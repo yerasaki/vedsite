@@ -101,7 +101,7 @@ a:not(.nav-shape):not(.home-btn) {
     align-items: center;
     justify-content: center;
     z-index: 12;
-    transition: border-radius 200ms ease-in-out;
+    /* corner morphs are eased in home.js, frame by frame, to match the physics */
     border-radius: 6rem;
     overflow: hidden;
     opacity: 1;

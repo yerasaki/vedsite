@@ -28,12 +28,27 @@ const getShapeSize = () => {
     return Math.min(225, Math.max(120, vwSize));
 }
 
-// Border-radius options for morphing on edge collision
-const roundnessOptions = ['0rem', '10px', '20px', '40px', '60px'];
+// Border-radius options for morphing on edge collision (px; the shapes start at 6rem)
+const roundnessOptions = [0, 10, 20, 40, 60];
+const START_RADIUS = 96;
 
-// DVD-style bouncing physics
+// DVD-style bouncing physics. Units are px and seconds, so the speed is the
+// same on 60 Hz and 120 Hz screens (the old per-frame step doubled on 120 Hz).
 const shapeData = [];
-const baseSpeed = 2;
+const baseSpeed = 120;          // px/s, the old 2 px/frame at 60 Hz
+const SPIN_KICK = 0.35;         // how much a glancing hit changes the spin
+const SPIN_SETTLE = 0.6;        // per second, spin drifts back toward its base
+const SQUASH = 0.09;            // peak squash on impact (9%)
+
+// Distance from a spinning rounded square's centre to its furthest point along
+// an axis. Collisions use this instead of the unrotated box, so a shape turns
+// around exactly when it visually touches the edge.
+const halfExtent = (size, radius, rotationDeg) => {
+    const half = size / 2;
+    const r = Math.min(radius, half);
+    const a = rotationDeg * Math.PI / 180;
+    return (half - r) * (Math.abs(Math.cos(a)) + Math.abs(Math.sin(a))) + r;
+};
 
 shapes.forEach((shape, index) => {
     const size = getShapeSize();
@@ -44,17 +59,24 @@ shapes.forEach((shape, index) => {
 
     // Random direction with consistent speed
     const angle = Math.random() * 2 * Math.PI;
-    const speed = baseSpeed + Math.random() * 0.5;
+    const speed = baseSpeed + Math.random() * 30;
+    const baseSpin = (Math.random() - 0.5) * 120; // deg/s
 
     shapeData.push({
         el: shape,
-        x: x,
+        x: x,                    // top-left, as the page transitions expect
         y: y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         rotation: 0,
-        rotationSpeed: (Math.random() - 0.5) * 2,
-        prevRoundness: 0,
+        spin: baseSpin,
+        baseSpin: baseSpin,
+        radius: START_RADIUS,    // target corner radius
+        radiusShown: START_RADIUS, // eased toward the target, drives the outline
+        prevRoundness: -1,
+        squash: 0,               // 0..1, decays after an impact
+        squashAxis: 'x',
+        scale: 1,                // eased toward 1.15 while hovered
         isHovering: false
     });
 
@@ -63,77 +85,94 @@ shapes.forEach((shape, index) => {
     shape.style.top = '0';
     shape.style.transform = `translate(${x}px, ${y}px)`;
 
-    shape.addEventListener('mouseenter', () => {
-        shapeData[index].isHovering = true;
-        // Apply hover scale along with current position
-        const data = shapeData[index];
-        shape.style.transform = `translate(${data.x}px, ${data.y}px) rotate(${data.rotation}deg) scale(1.15)`;
-    });
-
-    shape.addEventListener('mouseleave', () => {
-        shapeData[index].isHovering = false;
-        // Remove hover scale
-        const data = shapeData[index];
-        shape.style.transform = `translate(${data.x}px, ${data.y}px) rotate(${data.rotation}deg)`;
-    });
+    shape.addEventListener('mouseenter', () => { shapeData[index].isHovering = true; });
+    shape.addEventListener('mouseleave', () => { shapeData[index].isHovering = false; });
 });
 
-function animate() {
+function impact(data, axis, tangentialVelocity) {
+    // Morph the corners, as before
+    const roundnessIndex = uniqueRand(0, roundnessOptions.length - 1, data.prevRoundness);
+    data.radius = roundnessOptions[roundnessIndex];
+    data.prevRoundness = roundnessIndex;
+
+    // A glancing hit drags the spin the way wall friction would (CSS rotation is
+    // clockwise-positive; callers pass the slide velocity signed to match)
+    data.spin += tangentialVelocity * SPIN_KICK;
+    data.squash = 1;
+    data.squashAxis = axis;
+}
+
+let lastTime = performance.now();
+
+function animate(now) {
+    // Clamp the step so a backgrounded tab doesn't teleport shapes on return
+    const dt = Math.min((now - lastTime) / 1000, 1 / 20) || 0;
+    lastTime = now;
+
     const w = window.innerWidth;
     const h = window.innerHeight;
     const size = getShapeSize();
+    const half = size / 2;
 
     shapeData.forEach(data => {
-        if (data.isHovering) {
-            return; // Skip this shape, continue to next
+        // Mid page-transition the click handler owns the transform
+        if (data.el.classList.contains('expanding')) return;
+
+        // Corners ease to the new radius over ~150 ms (replaces the CSS
+        // transition, so the outline used below matches what's drawn)
+        data.radiusShown += (data.radius - data.radiusShown) * (1 - Math.exp(-dt * 20));
+        data.el.style.borderRadius = `${data.radiusShown.toFixed(1)}px`;
+
+        if (!data.isHovering) {
+            data.x += data.vx * dt;
+            data.y += data.vy * dt;
+            data.rotation += data.spin * dt;
+            data.spin += (data.baseSpin - data.spin) * Math.min(1, SPIN_SETTLE * dt);
+
+            const ext = halfExtent(size, data.radiusShown, data.rotation);
+            const cx = data.x + half;
+            const cy = data.y + half;
+
+            // The visible outline never crosses an edge: a corner swinging into
+            // the wall pushes the shape off it. Only a shape moving into the
+            // wall bounces (and morphs).
+            if (cx - ext < 0) {
+                data.x = ext - half;
+                if (data.vx < 0) { data.vx *= -1; impact(data, 'x', data.vy); }
+            } else if (cx + ext > w) {
+                data.x = w - ext - half;
+                if (data.vx > 0) { data.vx *= -1; impact(data, 'x', -data.vy); }
+            }
+            if (cy - ext < 0) {
+                data.y = ext - half;
+                if (data.vy < 0) { data.vy *= -1; impact(data, 'y', -data.vx); }
+            } else if (cy + ext > h) {
+                data.y = h - ext - half;
+                if (data.vy > 0) { data.vy *= -1; impact(data, 'y', data.vx); }
+            }
         }
 
-        // Update position
-        data.x += data.vx;
-        data.y += data.vy;
 
-        // Update rotation
-        data.rotation += data.rotationSpeed;
+        // Squash decays like a stiff spring settling (~200 ms)
+        data.squash *= Math.exp(-dt * 18);
+        if (data.squash < 0.001) data.squash = 0;
+        const s = data.squash * SQUASH;
+        const sx = data.squashAxis === 'x' ? 1 - s : 1 + s * 0.6;
+        const sy = data.squashAxis === 'x' ? 1 + s * 0.6 : 1 - s;
 
-        let hitEdge = false;
+        // Hover eases to 1.15 instead of snapping
+        const target = data.isHovering ? 1.15 : 1;
+        data.scale += (target - data.scale) * Math.min(1, dt * 14);
 
-        // Bounce off edges (DVD style - reverse velocity component)
-        if (data.x <= 0) {
-            data.x = 0;
-            data.vx *= -1;
-            hitEdge = true;
-        } else if (data.x >= w - size) {
-            data.x = w - size;
-            data.vx *= -1;
-            hitEdge = true;
-        }
-
-        if (data.y <= 0) {
-            data.y = 0;
-            data.vy *= -1;
-            hitEdge = true;
-        } else if (data.y >= h - size) {
-            data.y = h - size;
-            data.vy *= -1;
-            hitEdge = true;
-        }
-
-        // Morph shape on edge collision
-        if (hitEdge) {
-            const roundnessIndex = uniqueRand(0, roundnessOptions.length - 1, data.prevRoundness);
-            data.el.style.borderRadius = roundnessOptions[roundnessIndex];
-            data.prevRoundness = roundnessIndex;
-        }
-
-        // Apply position and rotation via transform (GPU accelerated)
-        data.el.style.transform = `translate(${data.x}px, ${data.y}px) rotate(${data.rotation}deg)`;
-
+        // scale() before rotate() squashes along the screen axis the shape hit,
+        // not the shape's own spinning axes
+        data.el.style.transform = `translate(${data.x}px, ${data.y}px) scale(${sx * data.scale}, ${sy * data.scale}) rotate(${data.rotation}deg)`;
     });
 
     requestAnimationFrame(animate);
 }
 
-animate();
+requestAnimationFrame(animate);
 
 // Page color mapping
 const pageColors = {
@@ -269,6 +308,7 @@ window.addEventListener('pageshow', (e) => {
 
             const data = shapeData[index];
             data.isHovering = false;
+            data.radius = data.radiusShown = START_RADIUS;
             shape.style.transform = `translate(${data.x}px, ${data.y}px) rotate(${data.rotation}deg)`;
 
             const label = shape.querySelector('.shape-label');
