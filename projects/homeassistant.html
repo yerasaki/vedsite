@@ -87,6 +87,10 @@
                         <strong>CCTV</strong>: One switch turns my MacBook's webcam into a live camera feed on the
                         dashboard. How that works is on its <a href="cctv.html">own page</a>.
                     </div>
+                    <div class="feature">
+                        <strong>next trains</strong>: A copy of an MBTA station countdown sign, showing when the next
+                        trains leave from my stop. More on that <a href="#transit-sign">below</a>.
+                    </div>
                 </div>
                 <video class="screenshot" autoplay loop muted playsinline>
                     <source src="../media/homeassistant/nfc.mp4" type="video/mp4">
@@ -117,9 +121,9 @@
                 <p>
                     The wall tablet runs one dashboard, laid out on a roughly 42-column grid (layout-card's grid layout,
                     not the default Sections view, which can't place cards this precisely). The live panel for the
-                    homelab sits top left, the movement map runs down the middle and the weather takes the right.
-                    Underneath, the camera switch and Spotify are on the left and the lights on the right: desk, floor,
-                    then both.
+                    homelab sits top left, the movement map runs down the middle, and the right side has the
+                    <a href="#transit-sign">transit sign</a> with the weather under it. Along the bottom, the camera
+                    switch and Spotify are on the left and the lights on the right: desk, floor, then both.
                 </p>
                 <p>
                     kiosk-mode hides Home Assistant's header and sidebar, but only for the tablet. The tablet signs in as
@@ -127,11 +131,59 @@
                     interface everywhere else. I couldn't do it with a URL flag: the Home Assistant Android app ignores
                     URL paths and always opens the signed-in user's default dashboard.
                 </p>
-                <img class="screenshot" src="../media/homeassistant/kiosk.png" alt="The kiosk dashboard: homelab panel, movement map, weather, CCTV, Spotify and the lights">
+                <img class="screenshot" src="../media/homeassistant/kiosk.png" alt="The kiosk dashboard: homelab panel, movement map, transit sign, weather, CCTV, Spotify and the lights">
                 <p>
                     The tablet itself, and the 3D-printed mount that holds it, are on the
                     <a href="wallmount.html">wall mount page</a>.
                 </p>
+            </section>
+
+            <!-- transit sign -->
+            <section id="transit-sign">
+                <h2>the transit sign</h2>
+                <p>
+                    The top right of the kiosk is a copy of the countdown signs in MBTA stations: amber dot-matrix
+                    letters on black, with a slight glow. It shows the next two Green Line E trains each way from
+                    Museum of Fine Arts, how many minutes until each one arrives, and the time it gets in. The second
+                    train in each direction is dimmed, and a train pulling in reads ARR, the same as on the platform.
+                </p>
+                <img class="screenshot" src="../media/homeassistant/mbta.png" alt="The transit sign: the next two Green Line E trains to Heath St and to Medford/Tufts, with minutes and arrival times in amber dot-matrix text">
+                <div class="features">
+                    <div class="feature">
+                        <strong>tap to switch</strong>: Tapping the sign cycles from the E branch at MFA to the D
+                        branch at Fenway to the Orange Line at Ruggles. After two minutes without a tap it goes back to
+                        MFA, so it's always on the stop I actually use when I walk past.
+                    </div>
+                    <div class="feature">
+                        <strong>falls back on its own</strong>: If the E branch has a suspension, shuttle buses or a
+                        closure at MFA, or just has no predictions, the sign switches to the D branch at Fenway and
+                        labels itself FENWAY · E DOWN. If both branches are out it says there's no service instead of
+                        showing an empty board.
+                    </div>
+                    <div class="feature">
+                        <strong>stale looks stale</strong>: While a new station loads, or if a request fails, the sign
+                        dims and keeps the last times on screen instead of going blank. A late answer for a station
+                        I've already tapped past gets thrown away, so the sign never shows the wrong stop's trains.
+                    </div>
+                    <div class="feature">
+                        <strong>fits its cell</strong>: The text scales with the smaller of the cell's width and
+                        height, so all four lines fit. Home Assistant's aspect-ratio option couldn't size a card this
+                        short and wide, so the card is pinned to a fixed height instead.
+                    </div>
+                </div>
+                <p>
+                    The MBTA's API needs a key, so the tablet never calls it directly. A route in the same
+                    <a href="https://github.com/deshpande-ved/vedsite-api">Flask API</a> that runs my
+                    <a href="../misc.html">misc page</a> fetches predictions and service alerts, picks the station,
+                    and returns only the rows the sign needs. Destination names come from the MBTA's own data instead
+                    of being typed in. Each station's answer is cached for 20 seconds, so the number of calls to the
+                    MBTA stays the same however often the tablet asks. Like the
+                    <a href="homelab.html#monitoring">homelab panel</a>, the route only answers inside my tailnet, and
+                    the sign itself is a plain HTML/CSS/JS page that Home Assistant serves into an iframe.
+                </p>
+                <video class="screenshot" autoplay loop muted playsinline>
+                    <source src="../media/homeassistant/mbta.mp4" type="video/mp4">
+                </video>
             </section>
 
             <!-- the phone dashboard -->
@@ -179,6 +231,7 @@
                     <span>kiosk-mode</span>
                     <span>card-mod</span>
                     <span>NFC</span>
+                    <span>MBTA V3 API</span>
                     <span>Tailscale</span>
                 </div>
                 <p>
@@ -199,14 +252,23 @@
                     <span class="arrow">→</span>
                     <span class="node">ESPHome plugs / MacBook camera / Spotify</span>
                 </div>
+                <div class="arch-row">
+                    <span class="node">MBTA V3 API</span>
+                    <span class="arrow">→</span>
+                    <span class="node">vedsite API (Pi)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">transit sign on the kiosk</span>
+                </div>
                 <p>
                     Everything goes through Home Assistant on the Pi: the tags and Siri trigger the same scripts the
-                    dashboards do, so there's one place where a light's state lives.
+                    dashboards do, so there's one place where a light's state lives. The transit sign is the
+                    exception, since it has no state to keep: it asks the API directly.
                     <br>
                     <br>
 
                     <strong>Source?</strong> My config isn't public since it describes my home network. Happy to talk
-                    through any part of it though.
+                    through any part of it though. The API behind the transit sign is on my
+                    <a href="https://github.com/deshpande-ved/vedsite-api">GitHub</a>.
                 </p>
             </section>
 

@@ -128,7 +128,9 @@
                     <div class="feature">
                         <strong>vedsite API</strong>: A Flask app that talks to Spotify, Last.fm and Letterboxd for the
                         misc page, published at <code>api.vedsite.com</code> through a Cloudflare Tunnel. No open ports
-                        on my router.
+                        on my router. It also has two private routes that only answer inside my tailnet: one for the
+                        homelab panel <a href="#monitoring">below</a>, and one for the
+                        <a href="homeassistant.html#transit-sign">transit sign</a> on my kiosk.
                     </div>
                     <div class="feature">
                         <strong>SquashHub</strong>: The club's React + Express + PostgreSQL stack, three containers,
@@ -188,7 +190,7 @@
             </section>
 
             <!-- monitoring -->
-            <section>
+            <section id="monitoring">
                 <h2>monitoring</h2>
                 <p>
                     The first thing on my wall tablet's dashboard is a live panel for the Pi: CPU, memory,
@@ -279,8 +281,9 @@
                     <br>
                     <br>
 
-                    <strong>Source?</strong> This one is mostly configuration rather than code, so there's no repo. The
-                    API it runs is what powers my <a href="../misc.html">misc page</a>.
+                    <strong>Source?</strong> This one is mostly configuration rather than code, so there's no repo for
+                    the homelab itself. The API it runs, which powers my <a href="../misc.html">misc page</a>, is on my
+                    <a href="https://github.com/deshpande-ved/vedsite-api">GitHub</a>.
                 </p>
             </section>
 
