@@ -388,7 +388,7 @@ a:not(.nav-shape):not(.home-btn):not(.back-btn):not(.resume-btn) {
 .card-image {
     align-items: center;
     display: flex;
-    height: 16 / 9;
+    aspect-ratio: 16 / 10;
     justify-content: center;
     overflow: hidden;
     border-radius: 8px 8px 0 0;
@@ -533,12 +533,19 @@ body:has(#cards) {
         width: 100%;
     }
 
+    /* Cards size to their content so the 16:10 thumbnail never gets squeezed. */
     & .card {
-        height: 260px;
+        height: auto;
     }
 
-    & .card-image {
-        height: 140px;
+    & .card>.card-content {
+        position: relative;
+        inset: auto;
+        margin: 1px;
+    }
+
+    & .card-info-wrapper {
+        min-height: 90px;
     }
 
     @media (max-width: 768px) {
