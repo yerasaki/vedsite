@@ -506,6 +506,20 @@ a, button, .film-card, .top4-card, .artist-card {
     color: #ffcc00;
 }
 
+.star-half {
+    position: relative;
+    display: inline-block;
+}
+
+.star-half::before {
+    content: '★';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    overflow: hidden;
+}
+
 .search-detail {
     display: flex;
     align-items: center;
