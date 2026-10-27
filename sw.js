@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vedsite-v19';
+const CACHE_NAME = 'vedsite-v20';
 
 const STATIC_ASSETS = [
   '/',
