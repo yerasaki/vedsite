@@ -33,7 +33,8 @@ function formatTime(ms) {
 function ratingToStars(rating) {
     if (!rating) return 'No rating';
     const full = Math.floor(rating);
-    const half = (rating - full) >= 0.5 ? '½' : '';
+    // half star: an empty ☆ with a filled ★ clipped to its left half (misc.css)
+    const half = (rating - full) >= 0.5 ? '<span class="star-half">☆</span>' : '';
     const empty = 5 - full - (half ? 1 : 0);
     return '★'.repeat(full) + half + '☆'.repeat(empty);
 }
