@@ -59,26 +59,23 @@
             <section>
                 <h2>overview</h2>
                 <p>
-                    This is my website, but accessible over SSH. When you connect to port 22, you receive a
-                    version of my homepage at <a href="https://vedsite.com">vedsite.com</a>, but in the terminal.
-                    I tried to be consistent with the DVD-player-esque animation style, with the squares bouncing off
-                    the
-                    edge.
-                    Each square maps to a different section of my portfolio (about, projects, experience, misc) and
-                    morphs
-                    into a different character every time it hits a wall. You can press 1 through 4 on your keyboard to
-                    navigate into
-                    each section, or just sit by and watch the square bounce around (don't sit idle too long, I have a
-                    timeout set for 10 minutes).
+                    This is my website, but accessible over SSH. When you connect to port 22, you get
+                    <a href="https://vedsite.com">vedsite.com</a> in the terminal: the same four sections, the same
+                    photos and projects, and the same live music and film data. Each section below is one page of it,
+                    recorded from a real session. You can press 1 through 4 on your keyboard to jump between them, or
+                    just sit by and watch the squares bounce around (don't sit idle too long, I have a timeout set for
+                    10 minutes).
                 </p>
-                <video class="screenshot" autoplay loop muted playsinline>
-                    <source src="../media/ssh/ssh_demo.mp4" type="video/mp4">
-                </video>
             </section>
 
-            <!-- visuals -->
+            <!-- home -->
             <section>
-                <h2>visuals</h2>
+                <h2>home</h2>
+                <p>
+                    I tried to be consistent with the DVD-player-esque animation style of my homepage, with the squares
+                    bouncing off the edge. Each square maps to a different section of my portfolio and morphs into a
+                    different character every time it hits a wall.
+                </p>
 
                 <div class="features">
                     <div class="feature">
@@ -103,10 +100,103 @@
                         around in. The text is offset per row so it reads diagonally, and the squares render on top of
                         it.
                     </div>
+                </div>
+
+                <video class="screenshot" autoplay loop muted playsinline>
+                    <source src="../media/ssh/ssh_home.mp4" type="video/mp4">
+                </video>
+            </section>
+
+            <!-- about -->
+            <section>
+                <h2>about</h2>
+                <p>
+                    My bio and links, next to four photos from my gallery turned into colour ASCII art in the style of
+                    terminalcam: every cell gets a character from a 70-step brightness ramp and the colour of the pixel
+                    under it. <code>←</code>/<code>→</code> flips between them.
+                </p>
+
+                <div class="features">
                     <div class="feature">
-                        <strong>keyboard navigation</strong>: Press <code>1</code>-<code>4</code> to open a subpage,
-                        <code>b</code> or <code>esc</code> to go back, <code>q</code> to quit. Each subpage
-                        shows the section title and links back to the real website.
+                        <strong>52 weeks, 52 photos</strong>: The buzz cut one plays all 52 weekly photos as a loop,
+                        with a week counter under it.
+                    </div>
+                    <div class="feature">
+                        <strong>fits your window</strong>: The art resizes to fit your terminal, so a bigger window
+                        means a bigger picture.
+                    </div>
+                </div>
+
+                <video class="screenshot" autoplay loop muted playsinline>
+                    <source src="../media/ssh/ssh_about.mp4" type="video/mp4">
+                </video>
+            </section>
+
+            <!-- projects -->
+            <section>
+                <h2>projects</h2>
+                <p>
+                    Every project on this site is in a list you move through with the arrow keys, with a preview of the
+                    highlighted one underneath. Enter opens a short write-up with links to the full page, and
+                    <code>b</code> goes back to the list.
+                </p>
+                <video class="screenshot" autoplay loop muted playsinline>
+                    <source src="../media/ssh/ssh_projects.mp4" type="video/mp4">
+                </video>
+            </section>
+
+            <!-- experience -->
+            <section>
+                <h2>experience</h2>
+                <p>
+                    My work, leadership, education, and the languages and tools I use. If your window is too short to
+                    fit it all, it scrolls with the arrow keys and shows a scrollbar.
+                </p>
+                <video class="screenshot" autoplay loop muted playsinline>
+                    <source src="../media/ssh/ssh_experience.mp4" type="video/mp4">
+                </video>
+            </section>
+
+            <!-- misc -->
+            <section>
+                <h2>misc</h2>
+                <p>
+                    The same data as my <a href="../misc.html">misc page</a>: what I'm playing on Spotify (with a
+                    progress bar that ticks between updates), my queue or recently played, my top artists this month,
+                    and my top 4 and recent films.
+                </p>
+                <img class="screenshot" src="../media/ssh/ssh_misc.png" alt="The misc page over SSH: top artists this month, a Steely Dan song playing with its progress bar and queue on the left; my top 4 films, recent films with star ratings and profile links on the right">
+
+                <div class="features">
+                    <div class="feature">
+                        <strong>have i heard it?</strong>: Press <code>/</code> and type a song or artist to search my
+                        Last.fm history. Enter on a result shows how many times I've played it and when I first and last
+                        did.
+                    </div>
+                    <div class="feature">
+                        <strong>have i seen it?</strong>: <code>tab</code> switches the box to my Letterboxd diary, with
+                        my rating, how many times I've watched it and a link to the entry. <code>esc</code> closes the
+                        search.
+                    </div>
+                </div>
+
+                <video class="screenshot" autoplay loop muted playsinline>
+                    <source src="../media/ssh/ssh_search.mp4" type="video/mp4">
+                </video>
+            </section>
+
+            <!-- getting around -->
+            <section>
+                <h2>getting around</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>keyboard navigation</strong>: Press <code>1</code>-<code>4</code> to jump between
+                        pages, <code>b</code> or <code>esc</code> to go back, and <code>q</code> to quit. Every page
+                        lists the keys that work on it in a footer, and links open in your browser in most terminals.
+                    </div>
+                    <div class="feature">
+                        <strong>small windows</strong>: If your window is smaller than 80×24, the page asks you to make
+                        it bigger, then redraws itself once it fits. The home screen keeps bouncing at any size.
                     </div>
                     <div class="feature">
                         <strong>per-user sessions</strong>: Every SSH connection spawns its own independent
@@ -115,7 +205,7 @@
                     </div>
                 </div>
 
-                <img class="screenshot" src="../media/ssh/ssh_subproject.png" alt="SSH subproject view">
+                <img class="screenshot" src="../media/ssh/ssh_small.png" alt="A 64 by 20 terminal showing the message: this terminal is 64×20, make the window at least 80×24 and this page redraws itself">
             </section>
 
             <!-- construction -->
@@ -145,6 +235,21 @@
                     and a velocity vector (vx, vy). With every tick, positions update and bounce off of terminal edges.
                     On collision, the square's character morphs to the next one in the cycle.
                 </p>
+
+                <p>
+                    Every page draws into a fixed grid of cells, which is then written out in runs of one colour, so
+                    layouts line up exactly at any size from 80×24 up. Doing the same for the home screen cut what it
+                    sends over the wire by about 10× without changing a single character on screen.
+                </p>
+
+                <p>
+                    The misc page doesn't fetch anything per visitor. One fetcher on the server keeps the latest data
+                    from <code>api.vedsite.com</code> and only runs while someone is on that page, so a hundred
+                    visitors cost the API the same as one. If the API goes down, the last data stays up, marked stale.
+                    Searches wait 150 ms after you stop typing and ignore answers to older queries. The photos are
+                    prepared offline with ffmpeg (cropped, sharpened, contrast-stretched), built into the binary, and
+                    scaled to your terminal when you open the page. Each size is built once and shared by everyone.
+                </p>
             </section>
 
             <!-- ARCHITECTURE -->
@@ -173,8 +278,8 @@
                     <br>
 
                     <strong>Source?</strong> The code is on my <a href="https://github.com/deshpande-ved/ssh-portfolio">GitHub</a>.
-                    The main logic is a single <code>main.go</code>
-                    file: model, update loop, view renderer, and SSH server setup all in one place.
+                    The main logic is still a single <code>main.go</code> file: the model, every page, the shared
+                    cache and the SSH server setup. The photo art sits next to it in <code>art/</code>.
                 </p>
             </section>
 
