@@ -84,8 +84,8 @@
                     <div class="feature">
                         <strong>bouncing square navigation</strong>: Four squares made up of four different icons (# @ *
                         +) drift
-                        across the terminal, with each square color-coded to a specific page. Pink = about, purple =
-                        projects, blue = experience, teal = misc. The numbers and colors match the ones on my website
+                        across the terminal, with each square color-coded to a specific page. Red = about, purple =
+                        projects, gold = experience, teal = misc. The numbers and colors match the ones on my website
                         homepage
                         respectively.
                     </div>
@@ -126,9 +126,7 @@
                     <span>Wish</span>
                     <span>Bubble Tea</span>
                     <span>Lip Gloss</span>
-                    <span>Raspberry Pi</span>
                     <span>Oracle Cloud</span>
-                    <span>Tailscale</span>
                 </div>
 
                 <p>
@@ -156,11 +154,9 @@
                 <div class="arch-row">
                     <span class="node">your terminal</span>
                     <span class="arrow">→</span>
-                    <span class="node">SSH (port 22)</span>
+                    <span class="node">Cloudflare DNS</span>
                     <span class="arrow">→</span>
-                    <span class="node">Oracle relay (socat)</span>
-                    <span class="arrow">→</span>
-                    <span class="node">Pi over Tailscale</span>
+                    <span class="node">Oracle Cloud VM</span>
                     <span class="arrow">→</span>
                     <span class="node">Wish server</span>
                     <span class="arrow">→</span>
@@ -168,16 +164,15 @@
                 </div>
 
                 <p>
-                    The Go binary runs directly on my Raspberry Pi 5 at home, listening on port 22. Since the Pi sits
-                    behind my home network, an Oracle Cloud free-tier VM acts as the public entrypoint: socat relays
-                    incoming TCP on port 22 to the Pi over Tailscale, so <code>ssh portfolio.vedsite.com</code> routes
-                    into the Wish server without exposing my home IP. The Pi's admin SSH runs on a different port so
-                    the portfolio can own port 22. Cloudflare handles DNS as an A record on DNS-only mode pointing
-                    at the Oracle VM, since SSH cannot be proxied on the free tier.
+                    The Go binary runs natively on an Oracle Cloud free-tier VM, listening on port 22, so
+                    <code>ssh portfolio.vedsite.com</code> lands straight in the Wish server. Cloudflare handles DNS
+                    as an A record on DNS-only mode pointing at the VM, since SSH cannot be proxied on the free tier.
+                    It used to run on my Pi behind a relay on the VM, but then every visitor looked like they were
+                    connecting from the relay, so I moved the binary itself onto the VM.
                     <br>
                     <br>
 
-                    <strong>Source?</strong> The code is on my <a href="https://github.com/deshpande-ved/ssh_portfolio">GitHub</a>.
+                    <strong>Source?</strong> The code is on my <a href="https://github.com/deshpande-ved/ssh-portfolio">GitHub</a>.
                     The main logic is a single <code>main.go</code>
                     file: model, update loop, view renderer, and SSH server setup all in one place.
                 </p>
