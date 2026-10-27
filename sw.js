@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vedsite-v17';
+const CACHE_NAME = 'vedsite-v18';
 
 const STATIC_ASSETS = [
   '/',
@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   '/projects/cctv.html',
   '/projects/wallmount.html',
   '/projects/localai.html',
+  '/projects/stopeating.html',
   '/projects/ssh.html',
   '/projects/squashhub.html',
   '/projects/pl.html',

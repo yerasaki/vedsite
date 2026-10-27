@@ -45,11 +45,12 @@
                 <h2>try it</h2>
                 <div class="highlight-box">
                     <div class="ssh-command">
-                        <code><a href="https://stopeating.pizza">stopeating.pizza</a></code>
+                        <code>stopeating.pizza</code>
                     </div>
                     <p class="hint">drop in a photo of a grocery receipt (or a screenshot of an online order) and it
                         grades your cart. no account needed to poke at the sample. yes, the name is a little
-                        judgmental. that's the point.
+                        judgmental. that's the point. the domain isn't live yet, so for now the screenshots below
+                        are from a local build.
                     </p>
                 </div>
             </section>
@@ -62,11 +63,12 @@
                     and hands you back a health report. It pulls out every line item, matches each one to real
                     nutrition data, and scores it. You get an A to E grade on every item (the same system the food
                     labels use across Europe), one overall score for the whole cart, the actual numbers behind every
-                    flag, and one better thing to reach for next time. The whole thing is built around improvement
+                    flag, one better thing to reach for next time, and a flag on anything in your cart that Europe
+                    restricts or bans. The whole thing is built around improvement
                     instead of shame. I wanted it to read like a friend who happens to know nutrition looking over your
                     cart, not a calorie counter yelling at you.
                 </p>
-                <img class="screenshot" src="../media/stopeating/report.png" alt="stopeating.pizza report view">
+                <img class="screenshot" src="../media/stopeating/report.png" alt="A stopeating.pizza report: a 7.9 out of ten cart score, 16 items read, 8 worth changing and 8 in the clear">
             </section>
 
             <!-- the report -->
@@ -91,6 +93,13 @@
                         leaves it out of the score and tells you, rather than making a number up.
                     </div>
                     <div class="feature">
+                        <strong>banned there, sold here</strong>: some of what's legal on American shelves is
+                        restricted, warning-labelled or banned outright in Europe. The report flags anything in your
+                        cart on that list, and the full list has its own page: every entry names the regulation, says
+                        when a restriction is precautionary rather than a finding of harm, and calls out popular claims
+                        that are wrong.
+                    </div>
+                    <div class="feature">
                         <strong>recall guardian</strong>: every upload is checked against active FDA and USDA food
                         recalls, so if something in your cart got pulled, it shows up as a warning on the report.
                     </div>
@@ -105,7 +114,8 @@
                     </div>
                 </div>
 
-                <img class="screenshot" src="../media/stopeating/item_open.png" alt="stopeating.pizza expanded item card">
+                <img class="screenshot" src="../media/stopeating/item_open.png" alt="An opened item card: an E grade, the per-serving numbers, each flag with its FDA source, and a better thing to reach for">
+                <img class="screenshot" src="../media/stopeating/banned.png" alt="The banned list: 26 things in American food that Europe restricts, each naming the regulation">
             </section>
 
             <!-- construction -->
