@@ -618,6 +618,13 @@ body.detail-page {
     display: block;
 }
 
+/* Embedded videos (YouTube): full width at 16:9 */
+.video-embed {
+    aspect-ratio: 16 / 9;
+    height: auto;
+    background: #000;
+}
+
 /* Portrait phone captures: phone-sized and side by side, stacked when narrow */
 .screenshot-pair {
     display: flex;
