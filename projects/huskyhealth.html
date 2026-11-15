@@ -1,0 +1,242 @@
+<!DOCTYPE HTML>
+<html lang='en'>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="../frontend/shared.css" />
+    <link rel="stylesheet" href="../frontend/subproject/subprojects.css" />
+    <title>HuskyHealth: HACK1984</title>
+    <link rel="icon" type="image/png" href="/icons/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/icons/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="vedsite" />
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <div id="background-animation">
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+        <div class="bg-shape triangle"></div>
+        <div class="bg-shape triangle-reverse"></div>
+    </div>
+
+    <div class="page-container">
+        <header class="page-header">
+            <h1>HuskyHealth: HACK1984</h1>
+            <div class="nav-buttons">
+                <a href="../projects.html" class="back-btn"> ← projects </a>
+                <a href="../index.html" class="home-btn"> ⌂ home </a>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- try it -->
+            <section>
+                <h2>try it</h2>
+                <div class="highlight-box">
+                    <div class="ssh-command">
+                        <code><a href="https://huskyhealth.pages.dev/" target="_blank">huskyhealth.pages.dev</a></code>
+                    </div>
+                    <p class="hint">logged out, you can still import an Apple Health export: it's parsed in your browser
+                        and nothing leaves it. the full flow needs an account and the iPhone app.</p>
+                </div>
+            </section>
+
+            <!-- overview -->
+            <section>
+                <h2>overview</h2>
+                <p>
+                    HuskyHealth is what I built solo over a weekend at
+                    <a href="https://claudeneu.com/hackathon/" target="_blank">HACK1984</a>, Northeastern's hackathon
+                    run by the Claude Builders Club, Rev, ACM and AINU on November 7–8, 2026. It won
+                    <strong>3rd place in the Privacy-First track</strong>, the main track ("software that protects its
+                    users by design"), with a $1,000 cash prize.
+                </p>
+                <p>
+                    The tagline is "zero knowledge, personal API." Your watch knows how hard you trained, how you slept
+                    and how fit you are, but getting that data out means either exporting a zip by hand or giving your
+                    health history to a company whose server reads it. HuskyHealth sends every Apple Watch or Garmin
+                    workout to your own private REST API automatically, and nobody can read it on the way, not even the
+                    server that stores it. On top of that API sit a daily training call from published sports science,
+                    a website and an iPhone app that show the same numbers, and a voice you can talk to. As a club
+                    squash player juggling training and classes, I built it for athletes in season first.
+                </p>
+                <img class="screenshot" src="../media/huskyhealth/web.png" alt="The HuskyHealth website logged out: the dot-matrix HuskyHealth title, a log-in button and a link to how the API works">
+            </section>
+
+            <!-- features -->
+            <section>
+                <h2>features</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>watch to API, by itself</strong>: Finish a workout and the iPhone app picks it up through
+                        HealthKit background delivery, seals it on the phone and posts it to your API. Garmin works too,
+                        through Garmin Connect's Apple Health sync.
+                    </div>
+                    <div class="feature">
+                        <strong>zero knowledge</strong>: Your password never leaves your device. The server stores only
+                        ciphertext and a hash; the keys to open your history exist only on your phone and in your
+                        browser.
+                    </div>
+                    <div class="feature">
+                        <strong>today's call</strong>: "Train hard" or "go easy", from your heart-rate variability band,
+                        or from this week's load against your usual week when there isn't enough HRV yet. Every number
+                        links to the paper behind it.
+                    </div>
+                    <div class="feature">
+                        <strong>the same on every screen</strong>: The website and the app draw from the same encrypted
+                        history with the same code: this week, last session, sleep, VO2 max, heart-rate zones and
+                        calories.
+                    </div>
+                    <div class="feature">
+                        <strong>talk to your API</strong>: Tap listen and today's call is read aloud with each word
+                        highlighted as it's said, using Gradium's text-to-speech. Ask "how many calories did I burn this
+                        week?" out loud and it's answered from your data, with the exact <code>curl</code> request behind
+                        the answer shown underneath.
+                    </div>
+                    <div class="feature">
+                        <strong>no location, ever</strong>: Routes, ECGs and clinical records are never read.
+                    </div>
+                </div>
+            </section>
+
+            <!-- the app -->
+            <section>
+                <h2>the app</h2>
+                <p>
+                    The iPhone app and the website share one design: a dot-matrix printout in Space Mono, with
+                    <code>./today</code>, <code>./api</code>, <code>./methods</code> and <code>./privacy</code> as the
+                    tabs. Today's call sits at the top with listen and speak under it, then a row for each number, and
+                    every row opens the same detail page on both. The privacy page spells out who can read what.
+                </p>
+                <div class="screenshot-pair">
+                    <img class="screenshot" src="../media/huskyhealth/app_today.png" alt="The HuskyHealth iPhone app's today screen: TRAIN HARD in dot-matrix letters, the reason (this week's load is 80% of your usual week), listen and speak, the ask prompt, the cited method and heart-rate zones">
+                </div>
+                <div class="screenshot-pair">
+                    <img class="screenshot" src="../media/huskyhealth/app_session.png" alt="The last session page: a 101-minute squash session with its load, calories, comparison to the usual squash session and minutes in each heart-rate zone">
+                    <img class="screenshot" src="../media/huskyhealth/app_privacy.png" alt="The privacy page: a table of who can read the password, the username, the workouts and the key that opens them (only you), and location, routes and ECGs (never read)">
+                </div>
+            </section>
+
+            <!-- how the privacy works -->
+            <section>
+                <h2>how the privacy works</h2>
+                <div class="features">
+                    <div class="feature">
+                        <strong>accounts</strong>: The browser or phone runs PBKDF2-SHA256 (600,000 rounds) on your
+                        password. Half of the result is the vault key, which never leaves your device. The other half
+                        logs you in, and the server keeps only a scrypt hash of it.
+                    </div>
+                    <div class="feature">
+                        <strong>the vault</strong>: Your history is JSON, gzipped, then encrypted with AES-256-GCM
+                        before it leaves the device.
+                    </div>
+                    <div class="feature">
+                        <strong>write-only device tokens</strong>: Records from devices go in with a token that can add
+                        but never read. Each one is sealed to your account's RSA public key (AES-256-GCM, with the key
+                        wrapped by RSA-OAEP); the private key lives only inside your encrypted vault.
+                    </div>
+                    <div class="feature">
+                        <strong>see what leaves</strong>: Voice requests go out through an egress proxy, so you can
+                        watch exactly what reaches Gradium: one short passage of the brief, or at most five seconds of
+                        your question, never stored.
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p>
+                        The honest cost: there's no password reset. Nobody can read your history, so nobody can recover
+                        it for you either.
+                    </p>
+                </div>
+            </section>
+
+            <!-- the engine -->
+            <section>
+                <h2>the engine</h2>
+                <p>
+                    The training call uses published methods only: Banister TRIMP and the fitness-fatigue model,
+                    session-RPE, HRV bands from Plews et al., and the acute:chronic load ratio from Gabbett, labelled as
+                    disputed wherever it's used. The engine is a single JavaScript file that runs in the browser and, as
+                    the same file, in the app, which is why both always show the same numbers. It's training insight,
+                    not medical advice.
+                </p>
+            </section>
+
+            <!-- construction -->
+            <section>
+                <h2>construction</h2>
+                <div class="tech-tags">
+                    <span>JavaScript</span>
+                    <span>Web Crypto</span>
+                    <span>Web Workers</span>
+                    <span>PWA</span>
+                    <span>Expo (React Native)</span>
+                    <span>TypeScript</span>
+                    <span>Swift</span>
+                    <span>HealthKit</span>
+                    <span>Python</span>
+                    <span>Flask</span>
+                    <span>nginx</span>
+                    <span>mitmproxy</span>
+                    <span>Docker</span>
+                    <span>Raspberry Pi 5</span>
+                    <span>Cloudflare Pages</span>
+                    <span>Gradium</span>
+                    <span>node:test</span>
+                    <span>pytest</span>
+                </div>
+                <p>
+                    The website is a plain-JavaScript PWA with no framework: an Apple Health export is parsed in a Web
+                    Worker, and all the cryptography is the browser's own Web Crypto. The iPhone app is Expo with a
+                    Swift module for HealthKit, the Keychain, crypto and voice, and it reuses the website's JavaScript
+                    for the engine and the views. The API is a Flask app in Docker behind an nginx gateway with a method
+                    allowlist, per-client rate limits and a strict schema, on the same Raspberry Pi 5 as my
+                    <a href="homelab.html">homelab</a>. 194 automated tests cover the engine, the parser, the vault,
+                    the views and the API, including a check that nothing gets logged.
+                </p>
+            </section>
+
+            <!-- architecture -->
+            <section>
+                <h2>architecture</h2>
+                <div class="arch-row">
+                    <span class="node">Apple Watch / Garmin</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Apple Health</span>
+                    <span class="arrow">→</span>
+                    <span class="node">iPhone app (seals each workout)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">Flask API on the Pi (ciphertext only)</span>
+                    <span class="arrow">→</span>
+                    <span class="node">website + app (decrypt on your device)</span>
+                </div>
+                <p>
+                    The server in the middle never holds anything it can read. Everything that turns ciphertext back
+                    into workouts happens at the ends: on your phone, in your browser, or on your own machine with the
+                    small command-line tool that reads your whole history back.
+                    <br>
+                    <br>
+
+                    <strong>Source?</strong> It's on <a href="https://github.com/deshpande-ved/huskyhealth"
+                        target="_blank">GitHub</a>.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="mousetrailer"></div>
+    <script src="../frontend/subproject/subprojects.js"></script>
+</body>
+
+</html>
